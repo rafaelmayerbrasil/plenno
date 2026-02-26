@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Plenno — Kanban Pessoal</title>
+<meta name="theme-color" content="#007A3D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Plenno">
+<link rel="manifest" href="data:application/json,{%22name%22:%22Plenno%22,%22short_name%22:%22Plenno%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22theme_color%22:%22%23007A3D%22,%22background_color%22:%22%23F0F4F2%22}">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<style>
+/* ═══════════════════════════════════════
+   CSS VARIABLES
+═══════════════════════════════════════ */
+:root {
+  --g:       #00A651;
+  --gd:      #007A3D;
+  --gl:      #E6F7EE;
+  --gm:      #B8E8CE;
+  --acc:     #00C96A;
+
+  --bg:      #EEF2EF;
+  --surface: #FFFFFF;
+  --card:    #FFFFFF;
+  --border:  #E4E8E5;
+  --border2: #D0D8D3;
+
+  --t1: #111816;
+  --t2: #374240;
+  --t3: #6B7A74;
+  --t4: #9AADA7;
+
+  --yellow: #F59E0B;
+  --red:    #EF4444;
+  --blue:   #3B82F6;
+  --purple: #8B5CF6;
+  --pink:   #EC4899;
+
+  --r4:  4px;
+  --r8:  8px;
+  --r12: 12px;
+  --r16: 16px;
+  --r24: 24px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  --shadow:    0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.05);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,.14), 0 4px 12px rgba(0,0,0,.06);
+
+  --header-h: 60px;
+  --col-w: 300px;
+}
+
+[data-dark] {
+  --bg:      #0F1511;
+  --surface: #182019;
+  --card:    #1E2920;
+  --border:  #2A3830;
+  --border2: #364840;
+  --t1: #EDF2EF;
+  --t2: #B8C8C0;
+  --t3: #7A9088;
+  --t4: #4A6058;
+  --gl: #0D2A1A;
+  --gm: #1A4030;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.3);
+  --shadow:    0 4px 16px rgba(0,0,0,.4);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,.6);
+}
+
+/* ═══════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  min-height: 100vh;
+  transition: background .25s, color .25s;
+  overflow-x: hidden;
+}
+
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+/* ═══════════════════════════════════════
+   LOGIN SCREEN
+═══════════════════════════════════════ */
+#login-screen {
+  display: none;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: var(--gd);
+  position: relative;
+  overflow: hidden;
+}
+#login-screen.show { display: flex; }
+
+#login-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 100%, rgba(0,198,106,.25) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 0%, rgba(0,120,60,.4) 0%, transparent 60%);
+}
+
+.login-card {
+  position: relative;
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: var(--r24);
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 32px 80px rgba(0,0,0,.4);
+}
+
+.login-logo {
+  width: 56px; height: 56px;
+  background: var(--g);
+  border-radius: var(--r12);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 8px 24px rgba(0,166,81,.4);
+}
+.login-logo svg { width: 30px; height: 30px; fill: white; }
+
+.login-card h1 {
+  font-size: 22px; font-weight: 800;
+  color: white; margin-bottom: 6px;
+}
+.login-card p {
+  font-size: 13px; color: rgba(255,255,255,.6);
+  margin-bottom: 32px; line-height: 1.6;
+}
+
+.btn-google {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--r12);
+  border: none;
+  background: white;
+  color: #374151;
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: transform .15s, box-shadow .15s;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+}
+.btn-google:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+.btn-google:active { transform: translateY(0); }
+.btn-google svg { width: 20px; height: 20px; }
+
+.login-footer {
+  margin-top: 24px;
+  font-size: 11px; color: rgba(255,255,255,.35); line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════ */
+#app { display: none; flex-direction: column; min-height: 100vh; }
+#app.show { display: flex; }
+
+/* ── HEADER ── */
+header {
+  height: var(--header-h);
+  background: var(--gd);
+  display: flex; align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: 0 2px 12px rgba(0,0,0,.2);
+}
+
+.h-logo {
+  width: 32px; height: 32px;
+  background: var(--g);
+  border-radius: var(--r8);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.h-logo svg { width: 18px; height: 18px; fill: white; }
+
+.h-title {
+  font-size: 14px; font-weight: 800;
+  color: white; letter-spacing: .2px;
+  flex: 1;
+}
+.h-title span { font-weight: 400; opacity: .6; font-size: 12px; margin-left: 6px; }
+
+.h-actions { display: flex; align-items: center; gap: 8px; }
+
+.h-btn {
+  background: rgba(255,255,255,.1);
+  border: 1.5px solid rgba(255,255,255,.18);
+  color: white; border-radius: var(--r8);
+  padding: 6px 12px; font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.h-btn:hover { background: rgba(255,255,255,.2); }
+.h-btn.primary { background: var(--g); border-color: var(--g); }
+.h-btn.primary:hover { background: var(--acc); }
+
+.h-btn-icon {
+  background: rgba(255,255,255,.1);
+  border: 1.5px solid rgba(255,255,255,.18);
+  color: white; border-radius: var(--r8);
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; transition: background .15s;
+}
+.h-btn-icon:hover { background: rgba(255,255,255,.2); }
+
+/* notification bell */
+.h-bell-wrap { position: relative; }
+.h-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--red); color: white;
+  font-size: 9px; font-weight: 800;
+  border-radius: 99px; min-width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--gd);
+  display: none;
+}
+.h-badge.show { display: flex; }
+
+/* avatar */
+.h-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  object-fit: cover; border: 2px solid rgba(255,255,255,.3);
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.h-avatar:hover { border-color: white; }
+
+/* filter bar */
+.filter-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+  transition: background .25s, border-color .25s;
+}
+.filter-label {
+  font-size: 11px; font-weight: 700; color: var(--t3);
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.filter-chip {
+  padding: 5px 12px; border-radius: 99px;
+  border: 1.5px solid var(--border2);
+  background: transparent; color: var(--t3);
+  font-size: 11px; font-weight: 600;
+  font-family: inherit;
+  cursor: pointer; transition: all .15s;
+}
+.filter-chip:hover { border-color: var(--g); color: var(--g); }
+.filter-chip.on { background: var(--g); border-color: var(--g); color: white; }
+
+.filter-select {
+  padding: 5px 10px; border-radius: var(--r8);
+  border: 1.5px solid var(--border2);
+  background: var(--surface); color: var(--t2);
+  font-size: 12px; font-weight: 500;
+  outline: none; cursor: pointer;
+  transition: border-color .15s;
+}
+.filter-select:focus { border-color: var(--g); }
+
+/* ── KANBAN BOARD ── */
+#board-wrap {
+  flex: 1;
+  overflow-x: auto;
+  padding: 20px 20px 48px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.kanban-col {
+  flex-shrink: 0;
+  width: var(--col-w);
+  display: flex; flex-direction: column;
+  border-radius: var(--r16);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: background .25s, border-color .25s;
+  max-height: calc(100vh - var(--header-h) - 60px - 40px);
+}
+
+.col-header {
+  padding: 14px 16px 12px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.col-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.col-name {
+  flex: 1; font-size: 13px; font-weight: 700; color: var(--t2);
+}
+.col-count {
+  background: var(--bg); color: var(--t3);
+  font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 99px;
+  font-family: 'DM Mono', monospace;
+}
+
+.col-cards {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+  min-height: 80px;
+}
+
+.col-cards.drag-over {
+  background: var(--gl);
+  border-radius: var(--r8);
+}
+
+.col-add {
+  padding: 10px 16px 14px;
+  flex-shrink: 0;
+}
+.btn-add-task {
+  width: 100%; padding: 8px;
+  border: 1.5px dashed var(--border2);
+  border-radius: var(--r8);
+  background: transparent; color: var(--t4);
+  font-size: 12px; font-weight: 600;
+  font-family: inherit;
+  transition: all .15s; cursor: pointer;
+}
+.btn-add-task:hover { border-color: var(--g); color: var(--g); background: var(--gl); }
+
+/* add column button */
+.col-add-btn {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r12);
+  border: 2px dashed var(--border2);
+  background: transparent;
+  color: var(--t4);
+  font-size: 22px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; align-self: flex-start; margin-top: 2px;
+  transition: all .15s;
+}
+.col-add-btn:hover { border-color: var(--g); color: var(--g); background: var(--gl); }
+
+/* ── TASK CARD ── */
+.task-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 12px 14px;
+  cursor: grab;
+  transition: box-shadow .2s, transform .15s, border-color .15s, background .25s;
+  animation: cardIn .2s ease;
+  user-select: none;
+  position: relative;
+}
+@keyframes cardIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+.task-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--gm);
+  transform: translateY(-1px);
+}
+.task-card:active { cursor: grabbing; }
+.task-card.dragging { opacity: .4; transform: scale(.97); }
+
+.task-card.priority-Alta { border-left: 3px solid var(--red); }
+.task-card.priority-Média { border-left: 3px solid var(--yellow); }
+.task-card.priority-Baixa { border-left: 3px solid var(--t4); }
+
+.card-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  margin-bottom: 6px;
+}
+.card-title {
+  font-size: 13px; font-weight: 700; color: var(--t1); line-height: 1.4; flex: 1;
+}
+.card-menu-btn {
+  background: none; border: none; color: var(--t4);
+  font-size: 16px; cursor: pointer; padding: 0 2px;
+  border-radius: var(--r4); line-height: 1;
+  transition: color .15s, background .15s; flex-shrink: 0;
+}
+.card-menu-btn:hover { color: var(--t2); background: var(--bg); }
+
+.card-desc {
+  font-size: 11px; color: var(--t3); line-height: 1.5;
+  margin-bottom: 8px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.card-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.tag {
+  padding: 2px 8px; border-radius: 99px;
+  font-size: 10px; font-weight: 700; letter-spacing: .2px;
+}
+.tag-prio-Alta   { background: #FEE2E2; color: #991B1B; }
+.tag-prio-Média  { background: #FEF3C7; color: #92400E; }
+.tag-prio-Baixa  { background: #F3F4F6; color: #6B7280; }
+.tag-area        { background: var(--gl); color: var(--gd); }
+[data-dark] .tag-prio-Alta  { background: #3B0F0F; color: #FCA5A5; }
+[data-dark] .tag-prio-Média { background: #2D1F00; color: #FCD34D; }
+[data-dark] .tag-prio-Baixa { background: #1E2520; color: #6B7280; }
+[data-dark] .tag-area       { background: #0D2A1A; color: #6EE7A0; }
+
+.card-footer {
+  display: flex; align-items: center; gap: 8px;
+}
+.card-date {
+  font-size: 10px; font-weight: 600;
+  color: var(--t4); display: flex; align-items: center; gap: 3px;
+  font-family: 'DM Mono', monospace;
+}
+.card-date.overdue { color: var(--red); }
+.card-date.today   { color: var(--yellow); }
+
+.card-meta { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+
+.card-subtask-badge {
+  font-size: 10px; font-weight: 700; color: var(--t4);
+  display: flex; align-items: center; gap: 3px;
+  font-family: 'DM Mono', monospace;
+}
+.card-subtask-badge.done { color: var(--g); }
+
+.card-comment-badge {
+  font-size: 10px; font-weight: 700; color: var(--t4);
+  display: flex; align-items: center; gap: 3px;
+}
+
+.card-shared-badge {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--purple);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; color: white;
+  title: "Tarefa compartilhada";
+}
+
+/* assignee avatars */
+.card-avatars { display: flex; }
+.card-av {
+  width: 20px; height: 20px; border-radius: 50%;
+  object-fit: cover; border: 1.5px solid var(--surface);
+  margin-left: -6px; background: var(--gm);
+}
+.card-av:first-child { margin-left: 0; }
+
+/* ── MODALS BASE ── */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.55); z-index: 500;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.overlay.show { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r24);
+  width: 100%; max-width: 560px;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn .2s ease;
+  max-height: 92vh; overflow-y: auto;
+  transition: background .25s, border-color .25s;
+}
+@keyframes modalIn { from { transform:scale(.94) translateY(12px); opacity:0; } to { transform:scale(1) translateY(0); opacity:1; } }
+
+.modal-sm { max-width: 400px; }
+.modal-lg { max-width: 720px; }
+
+.modal-head {
+  padding: 24px 28px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+  border-radius: var(--r24) var(--r24) 0 0;
+}
+.modal-title { font-size: 16px; font-weight: 800; color: var(--t1); }
+.modal-subtitle { font-size: 12px; color: var(--t3); margin-top: 2px; }
+
+.modal-close {
+  background: var(--bg); border: none; color: var(--t3);
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; transition: background .15s, color .15s;
+}
+.modal-close:hover { background: var(--border2); color: var(--t1); }
+
+.modal-body { padding: 24px 28px; }
+.modal-foot {
+  padding: 16px 28px 24px;
+  display: flex; justify-content: flex-end; gap: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── FORM ELEMENTS ── */
+.fg { margin-bottom: 18px; }
+.fg label {
+  display: block; font-size: 11px; font-weight: 700;
+  color: var(--t3); text-transform: uppercase; letter-spacing: .5px;
+  margin-bottom: 7px;
+}
+.fg input, .fg select, .fg textarea {
+  width: 100%; padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: var(--r8); background: var(--bg);
+  color: var(--t1); font-size: 13px; font-family: inherit;
+  outline: none; transition: border-color .15s, background .25s;
+}
+.fg input:focus, .fg select:focus, .fg textarea:focus {
+  border-color: var(--g); background: var(--surface);
+}
+.fg textarea { resize: vertical; min-height: 80px; }
+.fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 10px 20px; border-radius: var(--r8); font-size: 13px; font-weight: 700;
+  font-family: inherit; cursor: pointer; border: none;
+  display: flex; align-items: center; gap: 7px;
+  transition: all .15s;
+}
+.btn-primary { background: var(--g); color: white; }
+.btn-primary:hover { background: var(--gd); }
+.btn-ghost { background: var(--bg); color: var(--t2); border: 1.5px solid var(--border2); }
+.btn-ghost:hover { border-color: var(--g); color: var(--g); }
+.btn-danger { background: #FEE2E2; color: var(--red); }
+.btn-danger:hover { background: var(--red); color: white; }
+.btn-sm { padding: 7px 14px; font-size: 12px; }
+
+/* ── SUBTASKS in modal ── */
+.sub-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+.sub-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; background: var(--bg);
+  border-radius: var(--r8); font-size: 12px; color: var(--t2);
+}
+.sub-item span { flex: 1; }
+.sub-check-box {
+  width: 16px; height: 16px; border-radius: var(--r4);
+  border: 2px solid var(--border2); background: var(--surface);
+  flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.sub-check-box.on { background: var(--g); border-color: var(--g); }
+.sub-check-box.on::after { content: '✓'; color: white; font-size: 9px; font-weight: 900; }
+.sub-inp-row { display: flex; gap: 8px; }
+.sub-inp-row input { flex: 1; padding: 8px 12px; border-radius: var(--r8); border: 2px solid var(--border); background: var(--bg); color: var(--t1); font-size: 12px; font-family: inherit; outline: none; }
+.sub-inp-row input:focus { border-color: var(--g); }
+.btn-sub-add { padding: 8px 14px; border-radius: var(--r8); background: var(--gl); color: var(--gd); border: 2px solid var(--gm); font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; white-space: nowrap; transition: background .15s; }
+.btn-sub-add:hover { background: var(--gm); }
+.btn-sub-del { background: none; border: none; color: var(--t4); cursor: pointer; padding: 2px 5px; border-radius: var(--r4); transition: all .15s; font-size: 13px; }
+.btn-sub-del:hover { background: #FEE2E2; color: var(--red); }
+
+/* sub progress bar in modal */
+.sub-prog-wrap { height: 4px; background: var(--border); border-radius: 99px; margin-bottom: 10px; overflow: hidden; }
+.sub-prog-fill { height: 100%; background: var(--g); border-radius: 99px; transition: width .3s; }
+
+/* ── COMMENTS ── */
+.comments-section { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px; }
+.comments-title { font-size: 12px; font-weight: 700; color: var(--t3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 14px; }
+.comment-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.comment-item { display: flex; gap: 10px; }
+.comment-av {
+  width: 28px; height: 28px; border-radius: 50%;
+  object-fit: cover; flex-shrink: 0; background: var(--gm);
+}
+.comment-body { flex: 1; }
+.comment-meta { font-size: 11px; color: var(--t3); margin-bottom: 4px; }
+.comment-meta strong { color: var(--t2); font-weight: 700; }
+.comment-text { font-size: 13px; color: var(--t2); line-height: 1.5; background: var(--bg); padding: 10px 12px; border-radius: 0 var(--r12) var(--r12) var(--r12); }
+.comment-input-row { display: flex; gap: 8px; align-items: flex-end; }
+.comment-input-row textarea { flex: 1; padding: 10px 12px; border: 2px solid var(--border); border-radius: var(--r12); background: var(--bg); color: var(--t1); font-size: 12px; font-family: inherit; resize: none; min-height: 44px; outline: none; transition: border-color .15s; }
+.comment-input-row textarea:focus { border-color: var(--g); }
+
+/* ── NOTIFICATIONS PANEL ── */
+#notif-panel {
+  position: fixed; top: calc(var(--header-h) + 8px); right: 12px;
+  width: 320px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r16); box-shadow: var(--shadow-lg); z-index: 300;
+  display: none; overflow: hidden;
+  animation: dropIn .18s ease;
+}
+#notif-panel.show { display: block; }
+@keyframes dropIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+
+.notif-head { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.notif-head h3 { font-size: 13px; font-weight: 700; color: var(--t1); }
+.notif-list { max-height: 360px; overflow-y: auto; }
+.notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .15s; }
+.notif-item:hover { background: var(--bg); }
+.notif-item:last-child { border-bottom: none; }
+.notif-item p { font-size: 12px; color: var(--t2); line-height: 1.4; }
+.notif-item span { font-size: 10px; color: var(--t4); margin-top: 4px; display: block; font-family: 'DM Mono', monospace; }
+.notif-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.notif-dot.red { background: var(--red); }
+.notif-dot.yellow { background: var(--yellow); }
+.notif-empty { padding: 32px 16px; text-align: center; font-size: 13px; color: var(--t4); }
+
+/* ── USER MENU ── */
+#user-menu {
+  position: fixed; top: calc(var(--header-h) + 8px); right: 12px;
+  width: 240px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r16); box-shadow: var(--shadow-lg); z-index: 300;
+  display: none; overflow: hidden;
+  animation: dropIn .18s ease;
+}
+#user-menu.show { display: block; }
+.user-menu-info { padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.user-menu-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.user-menu-info div p { font-size: 13px; font-weight: 700; color: var(--t1); }
+.user-menu-info div span { font-size: 11px; color: var(--t3); }
+.user-menu-item { padding: 11px 16px; font-size: 13px; color: var(--t2); cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background .15s; }
+.user-menu-item:hover { background: var(--bg); }
+.user-menu-item.danger { color: var(--red); }
+
+/* ── SETTINGS PANEL (status config) ── */
+#settings-modal .modal { max-width: 480px; }
+.status-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.status-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; background: var(--bg);
+  border: 1.5px solid var(--border); border-radius: var(--r12);
+  cursor: grab; transition: box-shadow .15s;
+}
+.status-item:hover { box-shadow: var(--shadow-sm); }
+.status-dot-pick { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border2); cursor: pointer; flex-shrink: 0; }
+.status-name-inp { flex: 1; background: transparent; border: none; outline: none; font-size: 13px; font-weight: 600; color: var(--t1); font-family: inherit; }
+.status-del { background: none; border: none; color: var(--t4); cursor: pointer; padding: 2px 6px; border-radius: var(--r4); font-size: 14px; transition: all .15s; }
+.status-del:hover { background: #FEE2E2; color: var(--red); }
+.drag-handle { color: var(--t4); font-size: 14px; cursor: grab; }
+
+/* color picker */
+.color-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; padding: 12px; }
+.color-swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; transition: transform .15s; border: 2px solid transparent; }
+.color-swatch:hover { transform: scale(1.2); }
+.color-swatch.sel { border-color: var(--t1); transform: scale(1.15); }
+
+/* ── SHARE ── */
+.share-link-box {
+  display: flex; gap: 8px; margin-top: 12px;
+}
+.share-link-box input {
+  flex: 1; padding: 10px 12px; border: 2px solid var(--border);
+  border-radius: var(--r8); background: var(--bg); color: var(--t2);
+  font-size: 12px; font-family: 'DM Mono', monospace; outline: none;
+}
+.share-invited-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.share-invited-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg); border-radius: var(--r8); font-size: 12px; color: var(--t2); }
+.share-invited-item span { flex: 1; }
+.share-invited-item img { width: 24px; height: 24px; border-radius: 50%; }
+.share-status { font-size: 10px; color: var(--t4); font-family: 'DM Mono', monospace; }
+.share-status.accepted { color: var(--g); }
+
+/* share accept banner */
+#share-accept-banner {
+  display: none;
+  background: var(--purple);
+  color: white;
+  padding: 12px 20px;
+  text-align: center;
+  font-size: 13px; font-weight: 600;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+}
+#share-accept-banner.show { display: flex; }
+
+/* ── TOAST ── */
+.toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 9999; }
+.toast {
+  background: var(--t1); color: white;
+  padding: 12px 18px; border-radius: var(--r12);
+  font-size: 13px; font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn .25s ease;
+  max-width: 300px;
+}
+@keyframes toastIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── EMPTY STATE ── */
+.col-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 32px 16px; color: var(--t4); gap: 6px;
+}
+.col-empty-icon { font-size: 28px; }
+.col-empty-text { font-size: 12px; font-weight: 500; text-align: center; }
+
+/* ── LOADING ── */
+#loading {
+  display: none; position: fixed; inset: 0;
+  background: var(--gd);
+  align-items: center; justify-content: center;
+  z-index: 9999; flex-direction: column; gap: 16px;
+}
+#loading.show { display: flex; }
+.spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,.2); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading p { color: rgba(255,255,255,.7); font-size: 13px; }
+
+/* ── MOBILE ADAPTATIONS ── */
+@media (max-width: 768px) {
+  :root { --col-w: 280px; }
+  #board-wrap { padding: 14px 12px; gap: 12px; }
+  .h-title span { display: none; }
+  .fg-row { grid-template-columns: 1fr; }
+  .modal-body { padding: 20px 18px; }
+  .modal-foot { padding: 14px 18px 20px; }
+  .modal-head { padding: 18px 20px 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     LOADING
+═══════════════════════════════════════ -->
+<div id="loading" class="show">
+  <div class="spinner"></div>
+  <p>Carregando...</p>
+</div>
+
+<!-- ═══════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+    </div>
+    <h1>Plenno</h1>
+    <p>Organize. Colabore. <em>Flua.</em></p><p style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:-20px;margin-bottom:32px">Seu workspace pessoal de tarefas</p>
+    <button class="btn-google" id="btn-login">
+      <svg viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Entrar com Google
+    </button>
+    <p class="login-footer">Dados salvos na nuvem, sincronizados em todos os seus dispositivos.</p>
+    <p style="margin-top:16px;font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:0.3px">Elaborado por Rafael Mayer Brasil</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     APP
+═══════════════════════════════════════ -->
+<div id="app">
+
+  <!-- share accept banner -->
+  <div id="share-accept-banner">
+    <span>📨 Você foi convidado para colaborar numa tarefa no Plenno.</span>
+    <button class="btn btn-sm" style="background:white;color:var(--purple);border:none;" id="btn-accept-share">Aceitar</button>
+    <button class="btn btn-sm btn-ghost" style="border-color:rgba(255,255,255,.3);color:white;" id="btn-dismiss-share">Ignorar</button>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="h-logo">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+    </div>
+    <div class="h-title" id="h-title-text">Plenno <span>Kanban</span></div>
+    <div class="h-actions">
+      <button class="h-btn primary" id="btn-new-task" style="display:none">
+        <span>＋</span><span class="lbl-new">Nova Tarefa</span>
+      </button>
+      <button class="h-btn-icon" id="btn-dark" title="Modo escuro">🌙</button>
+      <button class="h-btn-icon" id="btn-settings" title="Configurar status">⚙️</button>
+      <div class="h-bell-wrap">
+        <button class="h-btn-icon" id="btn-notif" title="Notificações">🔔</button>
+        <div class="h-badge" id="notif-badge"></div>
+      </div>
+      <img src="" alt="" class="h-avatar" id="h-avatar" style="display:none">
+    </div>
+  </header>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar" id="filter-bar" style="display:none">
+    <span class="filter-label">Filtrar:</span>
+    <button class="filter-chip on" data-filter="all">Todos</button>
+    <button class="filter-chip" data-filter="mine">Minhas</button>
+    <button class="filter-chip" data-filter="overdue">Vencidas</button>
+    <button class="filter-chip" data-filter="today">Hoje</button>
+    <select class="filter-select" id="filter-prio">
+      <option value="">Prioridade</option>
+      <option value="Alta">Alta</option>
+      <option value="Média">Média</option>
+      <option value="Baixa">Baixa</option>
+    </select>
+    <select class="filter-select" id="filter-area">
+      <option value="">Área</option>
+    </select>
+  </div>
+
+  <!-- BOARD -->
+  <div id="board-wrap"></div>
+
+</div><!-- #app -->
+
+<!-- ═══════════════════════════════════════
+     NOTIFICATIONS PANEL
+═══════════════════════════════════════ -->
+<div id="notif-panel">
+  <div class="notif-head">
+    <h3>🔔 Notificações</h3>
+    <button class="modal-close" id="btn-close-notif">✕</button>
+  </div>
+  <div class="notif-list" id="notif-list">
+    <div class="notif-empty">Nenhuma notificação</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     USER MENU
+═══════════════════════════════════════ -->
+<div id="user-menu">
+  <div class="user-menu-info">
+    <img src="" alt="" id="um-avatar">
+    <div>
+      <p id="um-name"></p>
+      <span id="um-email"></span>
+    </div>
+  </div>
+  <div class="user-menu-item" id="um-settings">⚙️ Configurações</div>
+  <div class="user-menu-item danger" id="um-logout">🚪 Sair</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: TASK
+═══════════════════════════════════════ -->
+<div class="overlay" id="task-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="task-modal-title">Nova Tarefa</div>
+        <div class="modal-subtitle" id="task-modal-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeTaskModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <label>Título *</label>
+        <input type="text" id="t-title" placeholder="Ex: Verificar proposta do fornecedor X" maxlength="150">
+      </div>
+      <div class="fg">
+        <label>Descrição</label>
+        <textarea id="t-desc" placeholder="Contexto, links, observações..."></textarea>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>Status</label>
+          <select id="t-status"></select>
+        </div>
+        <div class="fg">
+          <label>Prioridade</label>
+          <select id="t-prio">
+            <option value="Média">Média</option>
+            <option value="Alta">Alta</option>
+            <option value="Baixa">Baixa</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>Data Prevista</label>
+          <input type="date" id="t-date">
+        </div>
+        <div class="fg">
+          <label>Área / Projeto</label>
+          <input type="text" id="t-area" placeholder="SAP, Automação, Follow Up...">
+        </div>
+      </div>
+
+      <!-- SUBTAREFAS -->
+      <div class="fg">
+        <label>Subtarefas <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--t4)">— opcional</span></label>
+        <div class="sub-prog-wrap" id="sub-prog-wrap" style="display:none">
+          <div class="sub-prog-fill" id="sub-prog-fill"></div>
+        </div>
+        <div class="sub-list" id="sub-list"></div>
+        <div class="sub-inp-row">
+          <input type="text" id="sub-inp" placeholder="Adicionar subtarefa..." maxlength="200"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addSubModal();}">
+          <button class="btn-sub-add" onclick="addSubModal()">＋</button>
+        </div>
+      </div>
+
+      <!-- COMENTÁRIOS (só em tasks existentes) -->
+      <div class="comments-section" id="comments-section" style="display:none">
+        <div class="comments-title">💬 Histórico & Comentários</div>
+        <div class="comment-list" id="comment-list"></div>
+        <div class="comment-input-row">
+          <textarea id="comment-inp" placeholder="Adicionar comentário ou registro de atividade..." rows="2"></textarea>
+          <button class="btn btn-primary btn-sm" onclick="addComment()">Enviar</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="btn-delete-task" style="display:none;color:var(--red)">🗑️ Excluir</button>
+      <button class="btn btn-ghost" id="btn-share-task" style="display:none">🔗 Compartilhar</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeTaskModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTask()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: SETTINGS (Status Config)
+═══════════════════════════════════════ -->
+<div class="overlay" id="settings-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">⚙️ Configurar Status</div>
+        <div class="modal-subtitle">Crie, edite e reordene as colunas do Plenno</div>
+      </div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="status-list" id="settings-status-list"></div>
+      <button class="btn btn-ghost" style="width:100%" onclick="addStatusItem()">＋ Novo Status</button>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeSettings()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: SHARE
+═══════════════════════════════════════ -->
+<div class="overlay" id="share-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">🔗 Compartilhar Tarefa</div>
+        <div class="modal-subtitle">Envie o link para um colega colaborar</div>
+      </div>
+      <button class="modal-close" onclick="closeShare()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--t2);margin-bottom:12px;line-height:1.6">
+        Qualquer pessoa com este link e conta Google poderá ver e colaborar nesta tarefa. Ela aparecerá no Plenno dela.
+      </p>
+      <div class="share-link-box">
+        <input type="text" id="share-link-input" readonly>
+        <button class="btn btn-primary btn-sm" onclick="copyShareLink()">Copiar</button>
+      </div>
+      <div id="share-colabs-wrap" style="margin-top:20px;display:none">
+        <div style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Colaboradores</div>
+        <div class="share-invited-list" id="share-colabs-list"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeShare()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  ⚠️  FIREBASE CONFIG — SUBSTITUA COM SUAS CHAVES
+// ═══════════════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyCm-oUxF89djJBWyiw2_VaXiQjFnT4vEYU",
+  authDomain:        "plenno-organize-colabore-flua.firebaseapp.com",
+  projectId:         "plenno-organize-colabore-flua",
+  storageBucket:     "plenno-organize-colabore-flua.firebasestorage.app",
+  messagingSenderId: "77418810007",
+  appId:             "1:77418810007:web:821032668bd65ffc1eb7d2",
+  measurementId:     "G-JLNFQHBPNZ"
+};
+// ═══════════════════════════════════════════════════════
+
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ── STATE ──────────────────────────────────────────────
+let currentUser  = null;
+let allTasks     = [];       // tasks (own + shared)
+let columns      = [];       // status columns config
+let filterState  = { mode: 'all', prio: '', area: '' };
+let editingTaskId = null;
+let modalSubs    = [];
+let dragSrcId    = null;
+let pendingShareId = null;   // share to accept on login
+
+const COLORS = [
+  '#00A651','#3B82F6','#F59E0B','#EF4444','#8B5CF6',
+  '#EC4899','#14B8A6','#F97316','#6B7280','#10B981',
+  '#0EA5E9','#A855F7','#E11D48','#D97706','#059669'
+];
+
+const DEFAULT_COLUMNS = [
+  { id: 'col_pend', name: 'Pendente',     color: '#F59E0B', order: 0 },
+  { id: 'col_and',  name: 'Em andamento', color: '#3B82F6', order: 1 },
+  { id: 'col_rev',  name: 'Em revisão',   color: '#8B5CF6', order: 2 },
+  { id: 'col_done', name: 'Concluído',    color: '#00A651', order: 3 },
+];
+
+// ── AUTH ───────────────────────────────────────────────
+document.getElementById('btn-login').onclick = async () => {
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+  } catch(e) { toast('Erro ao entrar: ' + e.message, 'red'); }
+};
+
+auth.onAuthStateChanged(async user => {
+  hideLoading();
+  if (user) {
+    currentUser = user;
+    await onLogin();
+  } else {
+    showLoginScreen();
+  }
+});
+
+async function onLogin() {
+  showApp();
+  updateHeaderUser();
+  await loadColumns();
+  await loadTasks();
+  buildBoard();
+  checkShareFromUrl();
+  buildNotifications();
+  requestNotifPermission();
+}
+
+// ── HEADER USER ────────────────────────────────────────
+function updateHeaderUser() {
+  const av = document.getElementById('h-avatar');
+  av.src = currentUser.photoURL || '';
+  av.style.display = currentUser.photoURL ? 'block' : 'none';
+  document.getElementById('um-avatar').src = currentUser.photoURL || '';
+  document.getElementById('um-name').textContent = currentUser.displayName || 'Usuário';
+  document.getElementById('um-email').textContent = currentUser.email || '';
+  document.getElementById('btn-new-task').style.display = 'flex';
+  document.getElementById('filter-bar').style.display = 'flex';
+  document.getElementById('h-title-text').innerHTML =
+    (currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'Plenno') +
+    ' <span>by Plenno</span>';
+}
+
+document.getElementById('h-avatar').onclick = () => toggleMenu('user-menu');
+document.getElementById('um-logout').onclick = () => { closeMenus(); auth.signOut(); };
+document.getElementById('um-settings').onclick = () => { closeMenus(); openSettings(); };
+document.getElementById('btn-settings').onclick = openSettings;
+document.getElementById('btn-new-task').onclick = () => openTaskModal();
+document.getElementById('btn-dark').onclick = toggleDark;
+document.getElementById('btn-notif').onclick = () => toggleMenu('notif-panel');
+document.getElementById('btn-close-notif').onclick = () => closeMenus();
+
+// ── DARK MODE ──────────────────────────────────────────
+function toggleDark() {
+  const on = document.documentElement.toggleAttribute('data-dark');
+  document.getElementById('btn-dark').textContent = on ? '☀️' : '🌙';
+  localStorage.setItem('dark', on ? '1' : '');
+}
+if (localStorage.getItem('dark')) {
+  document.documentElement.setAttribute('data-dark','');
+  document.getElementById('btn-dark').textContent = '☀️';
+}
+
+// ── SCREENS ────────────────────────────────────────────
+function showLoginScreen() {
+  document.getElementById('login-screen').classList.add('show');
+  document.getElementById('app').classList.remove('show');
+}
+function showApp() {
+  document.getElementById('login-screen').classList.remove('show');
+  document.getElementById('app').classList.add('show');
+}
+function hideLoading() { document.getElementById('loading').classList.remove('show'); }
+function toggleMenu(id) {
+  const el = document.getElementById(id);
+  const wasOpen = el.classList.contains('show');
+  closeMenus();
+  if (!wasOpen) el.classList.add('show');
+}
+function closeMenus() {
+  ['notif-panel','user-menu'].forEach(id => document.getElementById(id).classList.remove('show'));
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#notif-panel,#btn-notif,#user-menu,#h-avatar')) closeMenus();
+});
+
+// ── COLUMNS (Firestore) ────────────────────────────────
+async function loadColumns() {
+  const ref = db.collection('users').doc(currentUser.uid).collection('config').doc('columns');
+  const snap = await ref.get();
+  if (snap.exists) {
+    columns = snap.data().list || DEFAULT_COLUMNS;
+  } else {
+    columns = [...DEFAULT_COLUMNS];
+    await ref.set({ list: columns });
+  }
+  columns.sort((a,b) => a.order - b.order);
+}
+
+async function saveColumns() {
+  await db.collection('users').doc(currentUser.uid).collection('config').doc('columns')
+    .set({ list: columns });
+}
+
+// ── TASKS (Firestore) ──────────────────────────────────
+async function loadTasks() {
+  // own tasks
+  const ownSnap = await db.collection('tasks')
+    .where('ownerId', '==', currentUser.uid)
+    .orderBy('createdAt', 'desc').get();
+
+  // tasks shared with me
+  const sharedSnap = await db.collection('tasks')
+    .where('sharedWith', 'array-contains', currentUser.uid)
+    .orderBy('createdAt', 'desc').get();
+
+  const map = {};
+  ownSnap.forEach(d => map[d.id] = { id: d.id, ...d.data() });
+  sharedSnap.forEach(d => { if (!map[d.id]) map[d.id] = { id: d.id, ...d.data() }; });
+
+  allTasks = Object.values(map);
+  buildAreaFilter();
+}
+
+// Real-time listener
+function startTasksListener() {
+  db.collection('tasks').where('ownerId', '==', currentUser.uid)
+    .onSnapshot(async () => { await loadTasks(); buildBoard(); buildNotifications(); });
+  db.collection('tasks').where('sharedWith', 'array-contains', currentUser.uid)
+    .onSnapshot(async () => { await loadTasks(); buildBoard(); buildNotifications(); });
+}
+
+// ── BOARD ──────────────────────────────────────────────
+function getFilteredTasks() {
+  const today = new Date().toISOString().slice(0,10);
+  return allTasks.filter(t => {
+    if (filterState.mode === 'mine'    && t.ownerId !== currentUser.uid) return false;
+    if (filterState.mode === 'overdue' && (!t.date || t.date >= today)) return false;
+    if (filterState.mode === 'today'   && t.date !== today) return false;
+    if (filterState.prio && t.prio !== filterState.prio) return false;
+    if (filterState.area && t.area !== filterState.area) return false;
+    return true;
+  });
+}
+
+function buildBoard() {
+  const wrap = document.getElementById('board-wrap');
+  const tasks = getFilteredTasks();
+  const today = new Date().toISOString().slice(0,10);
+
+  let html = '';
+  columns.forEach(col => {
+    const colTasks = tasks.filter(t => t.status === col.name);
+    html += `
+    <div class="kanban-col" data-col="${esc(col.name)}">
+      <div class="col-header">
+        <div class="col-dot" style="background:${col.color}"></div>
+        <div class="col-name">${esc(col.name)}</div>
+        <div class="col-count">${colTasks.length}</div>
+      </div>
+      <div class="col-cards" data-col="${esc(col.name)}"
+        ondragover="onDragOver(event)" ondrop="onDrop(event,this)"
+        ondragenter="onDragEnter(event,this)" ondragleave="onDragLeave(event,this)">
+        ${colTasks.length ? colTasks.map(t => taskCardHTML(t, today)).join('') : `
+          <div class="col-empty">
+            <div class="col-empty-icon">📭</div>
+            <div class="col-empty-text">Nenhuma tarefa</div>
+          </div>`}
+      </div>
+      <div class="col-add">
+        <button class="btn-add-task" onclick="openTaskModal('','${esc(col.name)}')">＋ Adicionar tarefa</button>
+      </div>
+    </div>`;
+  });
+
+  // add column button
+  html += `<button class="col-add-btn" onclick="openSettings()" title="Adicionar coluna">＋</button>`;
+  wrap.innerHTML = html;
+
+  // attach drag listeners to cards
+  wrap.querySelectorAll('.task-card').forEach(card => {
+    card.draggable = true;
+    card.addEventListener('dragstart', e => onDragStart(e, card.dataset.id));
+    card.addEventListener('dragend',   () => onDragEnd());
+    card.addEventListener('click', e => {
+      if (e.target.closest('.card-menu-btn')) return;
+      openTaskModal(card.dataset.id);
+    });
+    const menuBtn = card.querySelector('.card-menu-btn');
+    if (menuBtn) menuBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      showCardMenu(e, card.dataset.id);
+    });
+  });
+
+  // start real-time if not already
+  if (!window._listenerStarted) {
+    window._listenerStarted = true;
+    startTasksListener();
+  }
+}
+
+function taskCardHTML(t, today) {
+  const subs     = t.subtasks || [];
+  const subDone  = subs.filter(s => s.done).length;
+  const hasSubs  = subs.length > 0;
+  const comments = t.commentCount || 0;
+  const vencida  = t.date && t.date < today;
+  const isToday  = t.date === today;
+  const isShared = t.sharedWith && t.sharedWith.length > 0;
+  const isOwn    = t.ownerId === currentUser.uid;
+  let dateStr = '';
+  if (t.date) { const [y,m,d]=t.date.split('-'); dateStr=`${d}/${m}/${y}`; }
+
+  return `
+  <div class="task-card priority-${esc(t.prio||'Baixa')}" data-id="${t.id}" title="Clique para abrir">
+    <div class="card-top">
+      <div class="card-title">${esc(t.title)}</div>
+      <button class="card-menu-btn" title="Opções">⋯</button>
+    </div>
+    ${t.desc ? `<div class="card-desc">${esc(t.desc)}</div>` : ''}
+    <div class="card-tags">
+      ${t.prio ? `<span class="tag tag-prio-${esc(t.prio)}">${esc(t.prio)}</span>` : ''}
+      ${t.area ? `<span class="tag tag-area">${esc(t.area)}</span>` : ''}
+    </div>
+    <div class="card-footer">
+      ${t.date ? `<span class="card-date ${vencida?'overdue':isToday?'today':''}">
+        📅 ${dateStr}${vencida?' ⚠':isToday?' •':''}
+      </span>` : ''}
+      <div class="card-meta">
+        ${hasSubs ? `<span class="card-subtask-badge ${subDone===subs.length&&subs.length>0?'done':''}">☑ ${subDone}/${subs.length}</span>` : ''}
+        ${comments > 0 ? `<span class="card-comment-badge">💬 ${comments}</span>` : ''}
+        ${isShared ? `<div class="card-shared-badge" title="Tarefa compartilhada">🔗</div>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── DRAG & DROP ────────────────────────────────────────
+function onDragStart(e, id) {
+  dragSrcId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => {
+    document.querySelectorAll(`[data-id="${id}"]`).forEach(el => el.classList.add('dragging'));
+  }, 0);
+}
+function onDragEnd() {
+  document.querySelectorAll('.task-card').forEach(c => c.classList.remove('dragging'));
+  document.querySelectorAll('.col-cards').forEach(c => c.classList.remove('drag-over'));
+}
+function onDragOver(e)  { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function onDragEnter(e, el) { e.preventDefault(); el.classList.add('drag-over'); }
+function onDragLeave(e, el) { el.classList.remove('drag-over'); }
+async function onDrop(e, el) {
+  e.preventDefault();
+  el.classList.remove('drag-over');
+  const newStatus = el.dataset.col;
+  if (!dragSrcId || !newStatus) return;
+  const task = allTasks.find(t => t.id === dragSrcId);
+  if (!task || task.status === newStatus) return;
+  task.status = newStatus;
+  buildBoard();
+  try {
+    await db.collection('tasks').doc(dragSrcId).update({ status: newStatus });
+    toast(`Movido para "${newStatus}"`);
+  } catch(e) { toast('Erro ao mover tarefa','red'); }
+  dragSrcId = null;
+}
+
+// ── CARD CONTEXT MENU ──────────────────────────────────
+function showCardMenu(e, taskId) {
+  const existing = document.getElementById('card-ctx-menu');
+  if (existing) existing.remove();
+  const task = allTasks.find(t => t.id === taskId);
+  const isOwn = task && task.ownerId === currentUser.uid;
+  const menu = document.createElement('div');
+  menu.id = 'card-ctx-menu';
+  menu.style.cssText = `position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:var(--r12);
+    box-shadow:var(--shadow-lg);z-index:600;min-width:160px;overflow:hidden;
+    top:${Math.min(e.clientY, window.innerHeight-180)}px;left:${Math.min(e.clientX, window.innerWidth-170)}px`;
+  const items = [
+    { label: '✏️ Editar', action: () => openTaskModal(taskId) },
+    { label: '🔗 Compartilhar', action: () => openShare(taskId), show: isOwn },
+    { label: '🗑️ Excluir', action: () => confirmDeleteTask(taskId), danger: true, show: isOwn },
+  ];
+  items.forEach(item => {
+    if (item.show === false) return;
+    const div = document.createElement('div');
+    div.textContent = item.label;
+    div.style.cssText = `padding:10px 16px;font-size:13px;cursor:pointer;
+      color:${item.danger?'var(--red)':'var(--t2)'};transition:background .12s;`;
+    div.onmouseenter = () => div.style.background = 'var(--bg)';
+    div.onmouseleave = () => div.style.background = '';
+    div.onclick = () => { menu.remove(); item.action(); };
+    menu.appendChild(div);
+  });
+  document.body.appendChild(menu);
+  setTimeout(() => document.addEventListener('click', function rem() {
+    menu.remove(); document.removeEventListener('click', rem);
+  }), 10);
+}
+
+// ── TASK MODAL ─────────────────────────────────────────
+function openTaskModal(taskId = '', defaultStatus = '') {
+  editingTaskId = taskId || null;
+  const task = taskId ? allTasks.find(t => t.id === taskId) : null;
+  const isOwn = !task || task.ownerId === currentUser.uid;
+
+  document.getElementById('task-modal-title').textContent = task ? 'Editar Tarefa' : 'Nova Tarefa';
+  document.getElementById('task-modal-sub').textContent = task && !isOwn ? '📎 Tarefa compartilhada com você' : '';
+
+  // Fill form
+  document.getElementById('t-title').value = task?.title || '';
+  document.getElementById('t-desc').value  = task?.desc  || '';
+  document.getElementById('t-date').value  = task?.date  || '';
+  document.getElementById('t-area').value  = task?.area  || '';
+
+  // Populate status select
+  const statusSel = document.getElementById('t-status');
+  statusSel.innerHTML = columns.map(c =>
+    `<option value="${esc(c.name)}" ${(task?.status||defaultStatus||columns[0]?.name)===c.name?'selected':''}>${esc(c.name)}</option>`
+  ).join('');
+
+  document.getElementById('t-prio').value = task?.prio || 'Média';
+
+  // Subtasks
+  modalSubs = task?.subtasks ? task.subtasks.map(s=>({...s})) : [];
+  renderModalSubs();
+
+  // Comments
+  const commSect = document.getElementById('comments-section');
+  commSect.style.display = task ? 'block' : 'none';
+  if (task) loadComments(task.id);
+
+  // Buttons
+  document.getElementById('btn-delete-task').style.display = (task && isOwn) ? 'flex' : 'none';
+  document.getElementById('btn-share-task').style.display  = (task && isOwn) ? 'flex' : 'none';
+  document.getElementById('btn-delete-task').onclick = () => confirmDeleteTask(taskId);
+  document.getElementById('btn-share-task').onclick  = () => { closeTaskModal(); openShare(taskId); };
+
+  // Read-only if shared and not owner
+  const inputs = document.querySelectorAll('#task-overlay input, #task-overlay select, #task-overlay textarea');
+  inputs.forEach(i => i.disabled = false);
+
+  document.getElementById('task-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('t-title').focus(), 80);
+}
+
+function closeTaskModal() {
+  document.getElementById('task-overlay').classList.remove('show');
+  document.getElementById('comment-inp').value = '';
+  editingTaskId = null; modalSubs = [];
+}
+
+function renderModalSubs() {
+  const list = document.getElementById('sub-list');
+  const prog = document.getElementById('sub-prog-wrap');
+  const fill = document.getElementById('sub-prog-fill');
+  if (!modalSubs.length) { list.innerHTML=''; prog.style.display='none'; return; }
+  const done = modalSubs.filter(s=>s.done).length;
+  prog.style.display = 'block';
+  fill.style.width   = Math.round(done/modalSubs.length*100) + '%';
+  list.innerHTML = modalSubs.map(s=>`
+    <div class="sub-item">
+      <div class="sub-check-box ${s.done?'on':''}" onclick="toggleModalSub('${s.id}')"></div>
+      <span style="${s.done?'text-decoration:line-through;color:var(--t4)':''}">${esc(s.text)}</span>
+      <button class="btn-sub-del" onclick="delModalSub('${s.id}')">✕</button>
+    </div>`).join('');
+}
+
+function addSubModal() {
+  const inp = document.getElementById('sub-inp');
+  const text = inp.value.trim(); if (!text) return;
+  modalSubs.push({ id:'s'+Date.now()+Math.random().toString(36).slice(2), text, done:false });
+  inp.value=''; inp.focus(); renderModalSubs();
+}
+function toggleModalSub(id) {
+  const s = modalSubs.find(s=>s.id===id); if (s) s.done=!s.done; renderModalSubs();
+}
+function delModalSub(id) {
+  modalSubs = modalSubs.filter(s=>s.id!==id); renderModalSubs();
+}
+
+async function saveTask() {
+  const title = document.getElementById('t-title').value.trim();
+  if (!title) {
+    const inp = document.getElementById('t-title');
+    inp.style.borderColor='var(--red)'; inp.focus();
+    setTimeout(()=>inp.style.borderColor='',1500); return;
+  }
+  const data = {
+    title, desc:  document.getElementById('t-desc').value.trim(),
+    status: document.getElementById('t-status').value,
+    prio:   document.getElementById('t-prio').value,
+    date:   document.getElementById('t-date').value,
+    area:   document.getElementById('t-area').value.trim(),
+    subtasks: modalSubs,
+  };
+  try {
+    if (editingTaskId) {
+      await db.collection('tasks').doc(editingTaskId).update(data);
+      const idx = allTasks.findIndex(t=>t.id===editingTaskId);
+      if (idx>=0) allTasks[idx] = {...allTasks[idx],...data};
+      toast('✏️ Tarefa atualizada!');
+    } else {
+      const ref = await db.collection('tasks').add({
+        ...data, ownerId: currentUser.uid,
+        sharedWith: [], commentCount: 0,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      allTasks.unshift({ id:ref.id, ...data, ownerId:currentUser.uid, sharedWith:[], commentCount:0 });
+      toast('✅ Tarefa criada!');
+    }
+    closeTaskModal();
+    buildBoard();
+    buildAreaFilter();
+    buildNotifications();
+  } catch(e) { toast('Erro ao salvar: '+e.message, 'red'); }
+}
+
+async function confirmDeleteTask(taskId) {
+  if (!confirm('Excluir esta tarefa? Esta ação não pode ser desfeita.')) return;
+  closeTaskModal();
+  try {
+    await db.collection('tasks').doc(taskId).delete();
+    allTasks = allTasks.filter(t=>t.id!==taskId);
+    buildBoard(); toast('🗑️ Tarefa removida');
+  } catch(e) { toast('Erro ao excluir','red'); }
+}
+
+// ── COMMENTS ───────────────────────────────────────────
+async function loadComments(taskId) {
+  const list = document.getElementById('comment-list');
+  list.innerHTML = '<p style="font-size:12px;color:var(--t4)">Carregando...</p>';
+  try {
+    const snap = await db.collection('tasks').doc(taskId)
+      .collection('comments').orderBy('createdAt','asc').get();
+    if (snap.empty) { list.innerHTML='<p style="font-size:12px;color:var(--t4)">Sem comentários ainda.</p>'; return; }
+    list.innerHTML = snap.docs.map(d=>{
+      const c = d.data();
+      const dt = c.createdAt?.toDate ? c.createdAt.toDate() : new Date();
+      const dtStr = dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      return `
+      <div class="comment-item">
+        <img src="${c.userPhoto||''}" class="comment-av" onerror="this.style.display='none'">
+        <div class="comment-body">
+          <div class="comment-meta"><strong>${esc(c.userName||'Usuário')}</strong> · ${dtStr}</div>
+          <div class="comment-text">${esc(c.text)}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { list.innerHTML='<p style="font-size:12px;color:var(--red)">Erro ao carregar.</p>'; }
+}
+
+async function addComment() {
+  const inp  = document.getElementById('comment-inp');
+  const text = inp.value.trim();
+  if (!text || !editingTaskId) return;
+  try {
+    await db.collection('tasks').doc(editingTaskId).collection('comments').add({
+      text, userId: currentUser.uid,
+      userName: currentUser.displayName || 'Usuário',
+      userPhoto: currentUser.photoURL   || '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('tasks').doc(editingTaskId).update({
+      commentCount: firebase.firestore.FieldValue.increment(1)
+    });
+    const t = allTasks.find(t=>t.id===editingTaskId);
+    if (t) t.commentCount = (t.commentCount||0)+1;
+    inp.value='';
+    loadComments(editingTaskId);
+    buildBoard();
+  } catch(e) { toast('Erro ao comentar','red'); }
+}
+
+// ── SETTINGS (Status Config) ───────────────────────────
+let tempColumns = [];
+
+function openSettings() {
+  tempColumns = columns.map(c=>({...c}));
+  renderSettingsList();
+  document.getElementById('settings-overlay').classList.add('show');
+}
+function closeSettings() { document.getElementById('settings-overlay').classList.remove('show'); }
+
+function renderSettingsList() {
+  const list = document.getElementById('settings-status-list');
+  list.innerHTML = tempColumns.map((c,i) => `
+    <div class="status-item" draggable="true"
+      ondragstart="settingsDragStart(${i})" ondragover="settingsDragOver(event,${i})"
+      ondrop="settingsDrop(${i})">
+      <span class="drag-handle">⠿</span>
+      <div class="status-dot-pick" style="background:${c.color}"
+        onclick="pickColor(${i})"></div>
+      <input class="status-name-inp" value="${esc(c.name)}" placeholder="Nome do status"
+        onchange="tempColumns[${i}].name=this.value">
+      <button class="status-del" onclick="delStatusItem(${i})" title="Remover">✕</button>
+    </div>`).join('');
+}
+
+function addStatusItem() {
+  tempColumns.push({
+    id: 'col_'+Date.now(), name: 'Novo Status',
+    color: COLORS[Math.floor(Math.random()*COLORS.length)],
+    order: tempColumns.length
+  });
+  renderSettingsList();
+}
+function delStatusItem(i) {
+  if (tempColumns.length <= 1) { toast('Mínimo 1 status','red'); return; }
+  tempColumns.splice(i,1);
+  renderSettingsList();
+}
+
+let settingsDragIdx = null;
+function settingsDragStart(i) { settingsDragIdx = i; }
+function settingsDragOver(e,i) { e.preventDefault(); }
+function settingsDrop(i) {
+  if (settingsDragIdx === null || settingsDragIdx === i) return;
+  const item = tempColumns.splice(settingsDragIdx, 1)[0];
+  tempColumns.splice(i, 0, item);
+  settingsDragIdx = null;
+  renderSettingsList();
+}
+
+function pickColor(idx) {
+  const existing = document.getElementById('color-picker-popup');
+  if (existing) existing.remove();
+  const pop = document.createElement('div');
+  pop.id = 'color-picker-popup';
+  pop.style.cssText = `position:fixed;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r12);box-shadow:var(--shadow-lg);z-index:700;top:50%;left:50%;transform:translate(-50%,-50%)`;
+  pop.innerHTML = `<div class="color-grid">${COLORS.map(col=>`
+    <div class="color-swatch ${tempColumns[idx].color===col?'sel':''}"
+      style="background:${col}" onclick="setColor(${idx},'${col}')"></div>`).join('')}</div>`;
+  document.body.appendChild(pop);
+  setTimeout(()=>document.addEventListener('click', function rem(e){
+    if(!pop.contains(e.target)){pop.remove();document.removeEventListener('click',rem);}
+  }),10);
+}
+function setColor(idx, color) {
+  tempColumns[idx].color = color;
+  document.getElementById('color-picker-popup')?.remove();
+  renderSettingsList();
+}
+
+async function saveSettings() {
+  const names = tempColumns.map(c=>c.value||c.name).filter(Boolean);
+  if (new Set(names).size !== names.length) { toast('Nomes duplicados!','red'); return; }
+  // sync names from inputs
+  document.querySelectorAll('.status-name-inp').forEach((inp,i) => {
+    if (tempColumns[i]) tempColumns[i].name = inp.value.trim() || tempColumns[i].name;
+  });
+  tempColumns.forEach((c,i) => c.order = i);
+  columns = tempColumns;
+  await saveColumns();
+  closeSettings();
+  buildBoard();
+  toast('✅ Colunas atualizadas!');
+}
+
+// ── SHARING ────────────────────────────────────────────
+let sharingTaskId = null;
+
+function openShare(taskId) {
+  sharingTaskId = taskId;
+  const shareId = btoa(taskId+'::'+currentUser.uid).replace(/=/g,'');
+  const url = window.location.origin + window.location.pathname + '?share=' + shareId;
+  document.getElementById('share-link-input').value = url;
+  // save share doc
+  db.collection('shares').doc(shareId).set({
+    taskId, ownerUid: currentUser.uid, createdAt: new Date().toISOString()
+  }).catch(()=>{});
+  // load existing colabs
+  loadShareColabs(taskId);
+  document.getElementById('share-overlay').classList.add('show');
+}
+function closeShare() { document.getElementById('share-overlay').classList.remove('show'); }
+
+async function loadShareColabs(taskId) {
+  const task = allTasks.find(t=>t.id===taskId);
+  const wrap = document.getElementById('share-colabs-wrap');
+  const list = document.getElementById('share-colabs-list');
+  if (!task?.sharedWith?.length) { wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  list.innerHTML = task.sharedWith.map(uid=>`
+    <div class="share-invited-item">
+      <span style="font-size:12px;color:var(--t4);font-family:'DM Mono',monospace">${uid.slice(0,12)}…</span>
+      <span class="share-status accepted">✓ Aceito</span>
+      <button class="btn btn-sm btn-ghost" onclick="revokeShare('${taskId}','${uid}')" style="padding:4px 10px;font-size:11px">Revogar</button>
+    </div>`).join('');
+}
+
+async function revokeShare(taskId, uid) {
+  if (!confirm('Revogar acesso desta pessoa?')) return;
+  await db.collection('tasks').doc(taskId).update({
+    sharedWith: firebase.firestore.FieldValue.arrayRemove(uid)
+  });
+  const task = allTasks.find(t=>t.id===taskId);
+  if (task) task.sharedWith = (task.sharedWith||[]).filter(u=>u!==uid);
+  loadShareColabs(taskId);
+  toast('Acesso revogado');
+}
+
+function copyShareLink() {
+  const val = document.getElementById('share-link-input').value;
+  navigator.clipboard.writeText(val).then(()=>toast('🔗 Link copiado!')).catch(()=>{
+    document.getElementById('share-link-input').select();
+    document.execCommand('copy'); toast('🔗 Link copiado!');
+  });
+}
+
+// ── ACCEPT SHARE ───────────────────────────────────────
+async function checkShareFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const shareId = params.get('share');
+  if (!shareId) return;
+  try {
+    const snap = await db.collection('shares').doc(shareId).get();
+    if (!snap.exists) return;
+    const { taskId, ownerUid } = snap.data();
+    if (ownerUid === currentUser.uid) return; // own task
+    // check not already shared
+    const task = await db.collection('tasks').doc(taskId).get();
+    if (!task.exists) return;
+    if ((task.data().sharedWith||[]).includes(currentUser.uid)) {
+      // already accepted, just load
+      toast('📎 Tarefa já está no seu Plenno');
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+    pendingShareId = { shareId, taskId };
+    document.getElementById('share-accept-banner').classList.add('show');
+    document.getElementById('btn-accept-share').onclick  = () => acceptShare(taskId);
+    document.getElementById('btn-dismiss-share').onclick = () => {
+      document.getElementById('share-accept-banner').classList.remove('show');
+      window.history.replaceState({}, '', window.location.pathname);
+    };
+  } catch(e) { console.warn('Share check error', e); }
+}
+
+async function acceptShare(taskId) {
+  try {
+    await db.collection('tasks').doc(taskId).update({
+      sharedWith: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+    });
+    document.getElementById('share-accept-banner').classList.remove('show');
+    window.history.replaceState({}, '', window.location.pathname);
+    await loadTasks(); buildBoard();
+    toast('🎉 Tarefa adicionada ao seu Plenno!');
+  } catch(e) { toast('Erro ao aceitar: '+e.message, 'red'); }
+}
+
+// ── NOTIFICATIONS ──────────────────────────────────────
+function buildNotifications() {
+  const today = new Date().toISOString().slice(0,10);
+  const tomorrow = new Date(Date.now()+86400000).toISOString().slice(0,10);
+  const notifs = [];
+
+  allTasks.forEach(t => {
+    if (!t.date || t.status === 'Concluído') return;
+    if (t.date < today) notifs.push({ task:t, type:'overdue', label:`🔴 Vencida: ${t.title}`, sub: t.date });
+    else if (t.date === today) notifs.push({ task:t, type:'today', label:`🟡 Vence hoje: ${t.title}`, sub:'Hoje' });
+    else if (t.date === tomorrow) notifs.push({ task:t, type:'soon', label:`🟠 Vence amanhã: ${t.title}`, sub:'Amanhã' });
+  });
+
+  const badge = document.getElementById('notif-badge');
+  badge.textContent = notifs.length;
+  badge.classList.toggle('show', notifs.length > 0);
+
+  const list = document.getElementById('notif-list');
+  if (!notifs.length) {
+    list.innerHTML='<div class="notif-empty">🎉 Nenhuma pendência urgente</div>'; return;
+  }
+  list.innerHTML = notifs.map(n=>`
+    <div class="notif-item" onclick="openTaskModal('${n.task.id}');closeMenus()">
+      <p>${n.label}</p>
+      <span>${n.sub}</span>
+    </div>`).join('');
+
+  // browser notification for today
+  notifs.filter(n=>n.type==='today').forEach(n=>{
+    if (Notification.permission==='granted') {
+      new Notification('📅 Tarefa vence hoje', { body: n.task.title, icon:'/favicon.ico' });
+    }
+  });
+}
+
+function requestNotifPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+// ── FILTERS ────────────────────────────────────────────
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.onclick = function() {
+    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('on'));
+    this.classList.add('on');
+    filterState.mode = this.dataset.filter;
+    buildBoard();
+  };
+});
+
+document.getElementById('filter-prio').onchange = function() {
+  filterState.prio = this.value; buildBoard();
+};
+document.getElementById('filter-area').onchange = function() {
+  filterState.area = this.value; buildBoard();
+};
+
+function buildAreaFilter() {
+  const areas = [...new Set(allTasks.map(t=>t.area).filter(Boolean))].sort();
+  const sel = document.getElementById('filter-area');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Área</option>' +
+    areas.map(a=>`<option value="${esc(a)}" ${a===cur?'selected':''}>${esc(a)}</option>`).join('');
+}
+
+// ── UTILS ──────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, type='') {
+  const cont = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  if (type==='red') el.style.background='var(--red)';
+  el.textContent = msg;
+  cont.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(8px)'; el.style.transition='.3s'; }, 2700);
+  setTimeout(()=>el.remove(), 3100);
+}
+
+// keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') {
+    closeTaskModal();
+    document.getElementById('settings-overlay').classList.remove('show');
+    document.getElementById('share-overlay').classList.remove('show');
+    closeMenus();
+  }
+  if (e.key==='Enter' && e.ctrlKey && document.getElementById('task-overlay').classList.contains('show')) {
+    saveTask();
+  }
+});
+</script>
+
+<!-- FOOTER CREDIT -->
+<div id="plenno-footer" style="
+  position:fixed;bottom:0;left:0;right:0;
+  height:28px;
+  background:var(--gd);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:rgba(255,255,255,0.45);
+  font-family:'Plus Jakarta Sans',sans-serif;
+  letter-spacing:0.4px;
+  z-index:50;
+  pointer-events:none;
+">
+  Plenno &nbsp;·&nbsp; Elaborado por <strong style="color:rgba(255,255,255,0.7);margin-left:4px;">Rafael Mayer Brasil</strong>
+</div>
+
+</body>
+</html>
