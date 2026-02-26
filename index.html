@@ -842,6 +842,177 @@ header {
   .mobile-tabs { display: none !important; }
 }
 
+
+/* ── MAIN NAV ── */
+.main-nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: none;
+  padding: 0 20px;
+  gap: 0;
+  transition: background .25s, border-color .25s;
+}
+.main-nav.show { display: flex; }
+.nav-tab {
+  padding: 12px 18px; font-size: 13px; font-weight: 700;
+  color: var(--t3); border-bottom: 2.5px solid transparent;
+  cursor: pointer; background: none; border-top: none;
+  border-left: none; border-right: none; font-family: inherit;
+  display: flex; align-items: center; gap: 7px;
+  transition: color .15s; white-space: nowrap;
+}
+.nav-tab:hover { color: var(--t1); }
+.nav-tab.active { color: var(--g); border-bottom-color: var(--g); }
+.nav-tab-badge {
+  background: var(--g); color: white;
+  font-size: 10px; font-weight: 800;
+  padding: 1px 6px; border-radius: 99px;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── CHAMADOS SECTION ── */
+#chamados-section {
+  display: none; flex: 1; padding: 20px;
+  flex-direction: column; gap: 16px;
+}
+#chamados-section.show { display: flex; }
+
+.chamados-toolbar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.chamados-search {
+  flex: 1; min-width: 200px;
+  padding: 9px 14px; border-radius: var(--r8);
+  border: 2px solid var(--border); background: var(--surface);
+  color: var(--t1); font-size: 13px; font-family: inherit;
+  outline: none; transition: border-color .15s;
+}
+.chamados-search:focus { border-color: var(--g); }
+
+.chamado-list { display: flex; flex-direction: column; gap: 10px; }
+
+.chamado-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r16); padding: 16px 20px;
+  cursor: pointer; transition: box-shadow .2s, border-color .15s;
+  animation: cardIn .2s ease;
+  border-left: 4px solid transparent;
+}
+.chamado-card:hover { box-shadow: var(--shadow); border-color: var(--border2); }
+.chamado-card.status-Aberto         { border-left-color: var(--red); }
+.chamado-card.status-Em-atendimento { border-left-color: var(--yellow); }
+.chamado-card.status-Aguardando     { border-left-color: var(--purple); }
+.chamado-card.status-Resolvido      { border-left-color: var(--g); }
+
+.chamado-top {
+  display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px;
+}
+.chamado-proto {
+  font-size: 11px; font-weight: 700; color: var(--t4);
+  font-family: 'DM Mono', monospace; background: var(--bg);
+  padding: 3px 8px; border-radius: var(--r4); white-space: nowrap;
+}
+.chamado-title { flex: 1; font-size: 14px; font-weight: 700; color: var(--t1); }
+.chamado-status-badge {
+  padding: 3px 10px; border-radius: 99px;
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+}
+.badge-Aberto         { background: #FEE2E2; color: #991B1B; }
+.badge-Em-atendimento { background: #FEF3C7; color: #92400E; }
+.badge-Aguardando     { background: #EDE9FE; color: #5B21B6; }
+.badge-Resolvido      { background: var(--gl); color: var(--gd); }
+[data-dark] .badge-Aberto         { background: #3B0F0F; color: #FCA5A5; }
+[data-dark] .badge-Em-atendimento { background: #2D1F00; color: #FCD34D; }
+[data-dark] .badge-Aguardando     { background: #1E1040; color: #C4B5FD; }
+[data-dark] .badge-Resolvido      { background: #0D2A1A; color: #6EE7A0; }
+
+.chamado-meta {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  font-size: 12px; color: var(--t3);
+}
+.chamado-meta span { display: flex; align-items: center; gap: 4px; }
+
+/* chamado empty */
+.chamados-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60px 20px; gap: 10px; color: var(--t4);
+}
+.chamados-empty-icon { font-size: 48px; }
+
+/* ── RASCUNHOS SECTION ── */
+#rascunhos-section {
+  display: none; flex: 1; padding: 20px;
+  flex-direction: column; gap: 16px; max-width: 800px; width: 100%;
+  margin: 0 auto;
+}
+#rascunhos-section.show { display: flex; }
+
+.rascunho-quick-input {
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: var(--r16); padding: 16px 20px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.rascunho-quick-input:focus-within {
+  border-color: var(--g); box-shadow: 0 0 0 4px rgba(0,166,81,.1);
+}
+.rascunho-inp {
+  width: 100%; border: none; background: transparent;
+  font-size: 14px; font-family: inherit; color: var(--t1);
+  resize: none; outline: none; min-height: 52px; line-height: 1.6;
+}
+.rascunho-inp::placeholder { color: var(--t4); }
+.rascunho-inp-footer {
+  display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;
+  padding-top: 10px; border-top: 1px solid var(--border);
+}
+
+.rascunho-list { display: flex; flex-direction: column; gap: 8px; }
+.rascunho-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r12); padding: 14px 16px;
+  display: flex; align-items: flex-start; gap: 12px;
+  transition: box-shadow .15s, border-color .15s;
+  animation: cardIn .2s ease;
+}
+.rascunho-item:hover { box-shadow: var(--shadow-sm); border-color: var(--border2); }
+.rascunho-text {
+  flex: 1; font-size: 13px; color: var(--t2); line-height: 1.6;
+  white-space: pre-wrap;
+}
+.rascunho-date {
+  font-size: 10px; color: var(--t4);
+  font-family: 'DM Mono', monospace; white-space: nowrap; margin-top: 2px;
+}
+.rascunho-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.rascunho-btn {
+  background: none; border: none; padding: 5px 8px;
+  border-radius: var(--r8); cursor: pointer; font-size: 13px;
+  color: var(--t4); transition: all .15s; font-family: inherit;
+}
+.rascunho-btn:hover { background: var(--bg); color: var(--t2); }
+.rascunho-btn.promote:hover { background: var(--gl); color: var(--gd); }
+.rascunho-btn.danger:hover  { background: #FEE2E2; color: var(--red); }
+
+.rascunhos-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60px 20px; gap: 10px; color: var(--t4);
+}
+.rascunhos-empty-icon { font-size: 48px; }
+
+/* chamado modal */
+.chamado-hist-item {
+  display: flex; gap: 10px; padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.chamado-hist-item:last-child { border-bottom: none; }
+.chamado-hist-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--g); flex-shrink: 0; margin-top: 4px;
+}
+.chamado-hist-body { flex: 1; }
+.chamado-hist-meta { font-size: 10px; color: var(--t4); margin-bottom: 2px; font-family: 'DM Mono', monospace; }
+.chamado-hist-text { font-size: 13px; color: var(--t2); line-height: 1.5; }
+
 </style>
 </head>
 <body>
@@ -880,6 +1051,19 @@ header {
      APP
 ═══════════════════════════════════════ -->
 <div id="app">
+
+  <!-- MAIN NAV -->
+  <nav class="main-nav" id="main-nav">
+    <button class="nav-tab active" data-section="tarefas" onclick="switchSection('tarefas')">
+      📋 Tarefas
+    </button>
+    <button class="nav-tab" data-section="chamados" onclick="switchSection('chamados')">
+      🎫 Chamados TI <span class="nav-tab-badge" id="chamados-badge" style="display:none"></span>
+    </button>
+    <button class="nav-tab" data-section="rascunhos" onclick="switchSection('rascunhos')">
+      📝 Rascunhos <span class="nav-tab-badge" id="rascunhos-badge" style="display:none"></span>
+    </button>
+  </nav>
 
   <!-- share accept banner -->
   <div id="share-accept-banner">
@@ -933,6 +1117,38 @@ header {
 
   <!-- BOARD -->
   <div id="board-wrap"></div>
+
+
+  <!-- ═══════════ CHAMADOS SECTION ═══════════ -->
+  <div id="chamados-section">
+    <div class="chamados-toolbar">
+      <input type="text" class="chamados-search" id="chamados-search"
+        placeholder="🔍 Buscar chamado..." oninput="renderChamados()">
+      <select class="filter-select" id="chamados-filter-status" onchange="renderChamados()">
+        <option value="">Todos os status</option>
+        <option value="Aberto">Aberto</option>
+        <option value="Em atendimento">Em atendimento</option>
+        <option value="Aguardando">Aguardando</option>
+        <option value="Resolvido">Resolvido</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="openChamadoModal()">＋ Novo Chamado</button>
+    </div>
+    <div class="chamado-list" id="chamado-list"></div>
+  </div>
+
+  <!-- ═══════════ RASCUNHOS SECTION ═══════════ -->
+  <div id="rascunhos-section">
+    <div class="rascunho-quick-input">
+      <textarea class="rascunho-inp" id="rascunho-inp"
+        placeholder="💭 Anote rapidamente aqui... (Enter para salvar, Shift+Enter para nova linha)"
+        onkeydown="handleRascunhoKey(event)"></textarea>
+      <div class="rascunho-inp-footer">
+        <button class="btn btn-ghost btn-sm" onclick="clearRascunhoInp()">Limpar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveRascunho()">Salvar nota</button>
+      </div>
+    </div>
+    <div class="rascunho-list" id="rascunho-list"></div>
+  </div>
 
 </div><!-- #app -->
 
@@ -1098,6 +1314,87 @@ header {
   </div>
 </div>
 
+
+<!-- ═══════════════════════════════════════
+     MODAL: CHAMADO
+═══════════════════════════════════════ -->
+<div class="overlay" id="chamado-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="chamado-modal-title">Novo Chamado</div>
+        <div class="modal-subtitle">Acompanhamento de chamado com TI</div>
+      </div>
+      <button class="modal-close" onclick="closeChamadoModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg-row">
+        <div class="fg">
+          <label>Número / Protocolo</label>
+          <input type="text" id="ch-proto" placeholder="Ex: CHD-2024-001">
+        </div>
+        <div class="fg">
+          <label>Status</label>
+          <select id="ch-status">
+            <option value="Aberto">Aberto</option>
+            <option value="Em atendimento">Em atendimento</option>
+            <option value="Aguardando">Aguardando</option>
+            <option value="Resolvido">Resolvido</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Título / Descrição do problema *</label>
+        <input type="text" id="ch-titulo" placeholder="Ex: SAP não abre após atualização">
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>Sistema / Área afetada</label>
+          <input type="text" id="ch-sistema" placeholder="Ex: SAP, Power Automate, VPN...">
+        </div>
+        <div class="fg">
+          <label>Responsável na TI</label>
+          <input type="text" id="ch-responsavel" placeholder="Nome do atendente">
+        </div>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>Prazo / Previsão</label>
+          <input type="date" id="ch-prazo">
+        </div>
+        <div class="fg">
+          <label>Prioridade</label>
+          <select id="ch-prio">
+            <option value="Média">Média</option>
+            <option value="Alta">Alta</option>
+            <option value="Baixa">Baixa</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Observações</label>
+        <textarea id="ch-obs" placeholder="Detalhes, links, contexto..."></textarea>
+      </div>
+
+      <!-- HISTÓRICO -->
+      <div class="comments-section" id="ch-hist-section" style="display:none">
+        <div class="comments-title">📋 Histórico de atualizações</div>
+        <div id="ch-hist-list" style="margin-bottom:14px"></div>
+        <div class="comment-input-row">
+          <textarea id="ch-hist-inp" placeholder="Registrar atualização..." rows="2"></textarea>
+          <button class="btn btn-primary btn-sm" onclick="addChamadoHist()">Registrar</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="btn-delete-chamado" style="display:none;color:var(--red)" onclick="deleteChamado()">🗑️ Excluir</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeChamadoModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveChamado()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toast-container"></div>
 
@@ -1165,6 +1462,7 @@ auth.onAuthStateChanged(async user => {
 async function onLogin() {
   showApp();
   updateHeaderUser();
+  showMainNav();
   await loadColumns();
   await loadTasks();
   buildBoard();
@@ -1562,6 +1860,11 @@ async function saveTask() {
     buildBoard();
     buildAreaFilter();
     buildNotifications();
+    // If promoted from rascunho, delete it
+    if (window._promoteRascunhoId) {
+      await deleteRascunho(window._promoteRascunhoId).catch(()=>{});
+      window._promoteRascunhoId = null;
+    }
   } catch(e) { toast('Erro ao salvar: '+e.message, 'red'); }
 }
 
@@ -1977,10 +2280,331 @@ buildBoard = function() {
 
 window.addEventListener('resize', applyMobileTabVisibility);
 
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+let currentSection = 'tarefas';
+
+function switchSection(section) {
+  currentSection = section;
+  // nav tabs
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.section === section);
+  });
+  // sections
+  const boardWrap    = document.getElementById('board-wrap');
+  const statsBar     = document.getElementById('stats-bar');
+  const filterBar    = document.getElementById('filter-bar');
+  const mobileTabs   = document.getElementById('mobile-tabs');
+  const chamadosSec  = document.getElementById('chamados-section');
+  const rascunhosSec = document.getElementById('rascunhos-section');
+
+  boardWrap.style.display    = section === 'tarefas' ? '' : 'none';
+  statsBar.style.display     = section === 'tarefas' ? '' : 'none';
+  filterBar.style.display    = section === 'tarefas' ? '' : 'none';
+  mobileTabs.style.display   = section === 'tarefas' ? '' : 'none';
+
+  chamadosSec.classList.toggle('show',  section === 'chamados');
+  rascunhosSec.classList.toggle('show', section === 'rascunhos');
+
+  if (section === 'chamados')  { loadChamados(); }
+  if (section === 'rascunhos') { loadRascunhos(); }
+}
+
+// Show nav after login
+function showMainNav() {
+  document.getElementById('main-nav').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════
+//  CHAMADOS
+// ═══════════════════════════════════════════════════════
+let allChamados    = [];
+let editingChamadoId = null;
+
+async function loadChamados() {
+  try {
+    const snap = await db.collection('chamados')
+      .where('userId', '==', currentUser.uid)
+      .orderBy('createdAt', 'desc').get();
+    allChamados = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderChamados();
+    updateChamadosBadge();
+  } catch(e) { console.warn('loadChamados error', e); }
+}
+
+function renderChamados() {
+  const list    = document.getElementById('chamado-list');
+  const search  = document.getElementById('chamados-search').value.toLowerCase();
+  const status  = document.getElementById('chamados-filter-status').value;
+
+  let filtered = allChamados.filter(c => {
+    if (status && c.status !== status) return false;
+    if (search && !((c.titulo||'').toLowerCase().includes(search) ||
+                    (c.proto||'').toLowerCase().includes(search)  ||
+                    (c.sistema||'').toLowerCase().includes(search))) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="chamados-empty">
+      <div class="chamados-empty-icon">🎫</div>
+      <div style="font-size:13px;font-weight:600">Nenhum chamado encontrado</div>
+      <div style="font-size:12px">Clique em "+ Novo Chamado" para registrar</div>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(c => {
+    const statusKey = (c.status||'Aberto').replace(/ /g,'-');
+    const prazoStr  = c.prazo ? (() => { const [y,m,d]=c.prazo.split('-'); return `${d}/${m}/${y}`; })() : '';
+    const vencido   = c.prazo && c.prazo < new Date().toISOString().slice(0,10) && c.status !== 'Resolvido';
+    return `
+    <div class="chamado-card status-${statusKey}" onclick="openChamadoModal('${c.id}')">
+      <div class="chamado-top">
+        ${c.proto ? `<span class="chamado-proto">${esc(c.proto)}</span>` : ''}
+        <span class="chamado-title">${esc(c.titulo||'Sem título')}</span>
+        <span class="chamado-status-badge badge-${statusKey}">${esc(c.status||'Aberto')}</span>
+      </div>
+      <div class="chamado-meta">
+        ${c.sistema     ? `<span>💻 ${esc(c.sistema)}</span>` : ''}
+        ${c.responsavel ? `<span>👤 ${esc(c.responsavel)}</span>` : ''}
+        ${c.prazo       ? `<span style="${vencido?'color:var(--red);font-weight:700':''}">📅 ${prazoStr}${vencido?' ⚠':''}</span>` : ''}
+        ${c.prio        ? `<span>🔺 ${esc(c.prio)}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateChamadosBadge() {
+  const abertos = allChamados.filter(c => c.status !== 'Resolvido').length;
+  const badge = document.getElementById('chamados-badge');
+  badge.textContent = abertos;
+  badge.style.display = abertos > 0 ? 'inline-flex' : 'none';
+}
+
+function openChamadoModal(chamadoId = '') {
+  editingChamadoId = chamadoId || null;
+  const c = chamadoId ? allChamados.find(x => x.id === chamadoId) : null;
+
+  document.getElementById('chamado-modal-title').textContent = c ? 'Editar Chamado' : 'Novo Chamado';
+  document.getElementById('ch-proto').value       = c?.proto       || '';
+  document.getElementById('ch-titulo').value      = c?.titulo      || '';
+  document.getElementById('ch-sistema').value     = c?.sistema     || '';
+  document.getElementById('ch-responsavel').value = c?.responsavel || '';
+  document.getElementById('ch-prazo').value       = c?.prazo       || '';
+  document.getElementById('ch-obs').value         = c?.obs         || '';
+  document.getElementById('ch-status').value      = c?.status      || 'Aberto';
+  document.getElementById('ch-prio').value        = c?.prio        || 'Média';
+
+  const histSection = document.getElementById('ch-hist-section');
+  histSection.style.display = c ? 'block' : 'none';
+  if (c) loadChamadoHist(c.id);
+
+  document.getElementById('btn-delete-chamado').style.display = c ? 'flex' : 'none';
+  document.getElementById('chamado-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('ch-titulo').focus(), 80);
+}
+
+function closeChamadoModal() {
+  document.getElementById('chamado-overlay').classList.remove('show');
+  document.getElementById('ch-hist-inp').value = '';
+  editingChamadoId = null;
+}
+
+async function saveChamado() {
+  const titulo = document.getElementById('ch-titulo').value.trim();
+  if (!titulo) {
+    const inp = document.getElementById('ch-titulo');
+    inp.style.borderColor='var(--red)'; inp.focus();
+    setTimeout(()=>inp.style.borderColor='',1500); return;
+  }
+  const data = {
+    titulo, proto:       document.getElementById('ch-proto').value.trim(),
+    sistema:     document.getElementById('ch-sistema').value.trim(),
+    responsavel: document.getElementById('ch-responsavel').value.trim(),
+    prazo:       document.getElementById('ch-prazo').value,
+    obs:         document.getElementById('ch-obs').value.trim(),
+    status:      document.getElementById('ch-status').value,
+    prio:        document.getElementById('ch-prio').value,
+  };
+  try {
+    if (editingChamadoId) {
+      await db.collection('chamados').doc(editingChamadoId).update(data);
+      const idx = allChamados.findIndex(c=>c.id===editingChamadoId);
+      if (idx>=0) allChamados[idx] = {...allChamados[idx],...data};
+      toast('✏️ Chamado atualizado!');
+    } else {
+      const ref = await db.collection('chamados').add({
+        ...data, userId: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      allChamados.unshift({ id:ref.id, ...data, userId:currentUser.uid });
+      toast('🎫 Chamado registrado!');
+    }
+    closeChamadoModal();
+    renderChamados();
+    updateChamadosBadge();
+  } catch(e) { toast('Erro ao salvar: '+e.message,'red'); }
+}
+
+async function deleteChamado() {
+  if (!confirm('Excluir este chamado? Esta ação não pode ser desfeita.')) return;
+  closeChamadoModal();
+  try {
+    await db.collection('chamados').doc(editingChamadoId).delete();
+    allChamados = allChamados.filter(c=>c.id!==editingChamadoId);
+    renderChamados(); updateChamadosBadge();
+    toast('🗑️ Chamado removido');
+  } catch(e) { toast('Erro ao excluir','red'); }
+}
+
+async function loadChamadoHist(chamadoId) {
+  const list = document.getElementById('ch-hist-list');
+  list.innerHTML = '<p style="font-size:12px;color:var(--t4)">Carregando...</p>';
+  try {
+    const snap = await db.collection('chamados').doc(chamadoId)
+      .collection('historico').orderBy('createdAt','desc').get();
+    if (snap.empty) { list.innerHTML='<p style="font-size:12px;color:var(--t4)">Sem atualizações ainda.</p>'; return; }
+    list.innerHTML = snap.docs.map(d => {
+      const h = d.data();
+      const dt = h.createdAt?.toDate ? h.createdAt.toDate() : new Date();
+      const dtStr = dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="chamado-hist-item">
+        <div class="chamado-hist-dot"></div>
+        <div class="chamado-hist-body">
+          <div class="chamado-hist-meta">${dtStr} · ${esc(h.userName||'Você')}</div>
+          <div class="chamado-hist-text">${esc(h.text)}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { list.innerHTML='<p style="font-size:12px;color:var(--red)">Erro ao carregar.</p>'; }
+}
+
+async function addChamadoHist() {
+  const inp  = document.getElementById('ch-hist-inp');
+  const text = inp.value.trim();
+  if (!text || !editingChamadoId) return;
+  try {
+    await db.collection('chamados').doc(editingChamadoId).collection('historico').add({
+      text, userId: currentUser.uid,
+      userName: currentUser.displayName || 'Você',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    inp.value='';
+    loadChamadoHist(editingChamadoId);
+    toast('📋 Atualização registrada!');
+  } catch(e) { toast('Erro','red'); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  RASCUNHOS
+// ═══════════════════════════════════════════════════════
+let allRascunhos = [];
+
+async function loadRascunhos() {
+  try {
+    const snap = await db.collection('rascunhos')
+      .where('userId','==',currentUser.uid)
+      .orderBy('createdAt','desc').get();
+    allRascunhos = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderRascunhos();
+    updateRascunhosBadge();
+  } catch(e) { console.warn('loadRascunhos error',e); }
+}
+
+function renderRascunhos() {
+  const list = document.getElementById('rascunho-list');
+  if (!allRascunhos.length) {
+    list.innerHTML=`<div class="rascunhos-empty">
+      <div class="rascunhos-empty-icon">📝</div>
+      <div style="font-size:13px;font-weight:600">Nenhum rascunho ainda</div>
+      <div style="font-size:12px">Use o campo acima para anotar rapidamente</div>
+    </div>`; return;
+  }
+  list.innerHTML = allRascunhos.map(r => {
+    const dt = r.createdAt?.toDate ? r.createdAt.toDate() : new Date();
+    const dtStr = dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    return `
+    <div class="rascunho-item">
+      <div style="flex:1">
+        <div class="rascunho-text">${esc(r.texto)}</div>
+        <div class="rascunho-date">📅 ${dtStr}</div>
+      </div>
+      <div class="rascunho-actions">
+        <button class="rascunho-btn promote" onclick="promoteRascunho('${r.id}')" title="Criar tarefa a partir deste rascunho">📋 Criar tarefa</button>
+        <button class="rascunho-btn danger"  onclick="deleteRascunho('${r.id}')" title="Excluir">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateRascunhosBadge() {
+  const badge = document.getElementById('rascunhos-badge');
+  badge.textContent = allRascunhos.length;
+  badge.style.display = allRascunhos.length > 0 ? 'inline-flex' : 'none';
+}
+
+function handleRascunhoKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveRascunho(); }
+}
+
+function clearRascunhoInp() {
+  document.getElementById('rascunho-inp').value = '';
+  document.getElementById('rascunho-inp').focus();
+}
+
+async function saveRascunho() {
+  const inp   = document.getElementById('rascunho-inp');
+  const texto = inp.value.trim();
+  if (!texto) return;
+  try {
+    const ref = await db.collection('rascunhos').add({
+      texto, userId: currentUser.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    allRascunhos.unshift({ id:ref.id, texto, userId:currentUser.uid, createdAt:{toDate:()=>new Date()} });
+    inp.value='';
+    renderRascunhos();
+    updateRascunhosBadge();
+    toast('📝 Rascunho salvo!');
+  } catch(e) { toast('Erro ao salvar','red'); }
+}
+
+async function deleteRascunho(id) {
+  try {
+    await db.collection('rascunhos').doc(id).delete();
+    allRascunhos = allRascunhos.filter(r=>r.id!==id);
+    renderRascunhos(); updateRascunhosBadge();
+    toast('🗑️ Rascunho removido');
+  } catch(e) { toast('Erro','red'); }
+}
+
+function promoteRascunho(id) {
+  const r = allRascunhos.find(x=>x.id===id);
+  if (!r) return;
+  // Switch to tarefas and open modal pre-filled
+  switchSection('tarefas');
+  openTaskModal();
+  setTimeout(() => {
+    document.getElementById('t-title').value = r.texto.split('\n')[0].slice(0,150);
+    if (r.texto.includes('\n')) {
+      document.getElementById('t-desc').value = r.texto.split('\n').slice(1).join('\n').trim();
+    }
+    // offer to delete rascunho after save
+    const origSave = window._promoteId;
+    window._promoteRascunhoId = id;
+  }, 100);
+  toast('📋 Rascunho aberto como tarefa — salve para confirmar!');
+}
+
+
 // keyboard shortcuts
 document.addEventListener('keydown', e => {
   if (e.key==='Escape') {
     closeTaskModal();
+    closeChamadoModal();
     document.getElementById('settings-overlay').classList.remove('show');
     document.getElementById('share-overlay').classList.remove('show');
     closeMenus();
