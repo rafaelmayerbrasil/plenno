@@ -2454,13 +2454,14 @@ async function saveChamado() {
 
 async function deleteChamado() {
   if (!confirm('Excluir este chamado? Esta ação não pode ser desfeita.')) return;
+  const idToDelete = editingChamadoId;
   closeChamadoModal();
   try {
-    await db.collection('chamados').doc(editingChamadoId).delete();
-    allChamados = allChamados.filter(c=>c.id!==editingChamadoId);
+    await db.collection('chamados').doc(idToDelete).delete();
+    allChamados = allChamados.filter(c=>c.id!==idToDelete);
     renderChamados(); updateChamadosBadge();
     toast('🗑️ Chamado removido');
-  } catch(e) { toast('Erro ao excluir','red'); }
+  } catch(e) { toast('Erro ao excluir: '+e.message,'red'); }
 }
 
 async function loadChamadoHist(chamadoId) {
