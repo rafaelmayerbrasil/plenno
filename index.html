@@ -757,6 +757,91 @@ header {
   .modal-foot { padding: 14px 18px 20px; }
   .modal-head { padding: 18px 20px 14px; }
 }
+
+/* ── STATS BAR ── */
+.stats-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: none;
+  gap: 12px;
+  transition: background .25s, border-color .25s;
+  overflow-x: auto;
+}
+.stats-bar.show { display: flex; }
+.stat-card {
+  flex: 1; min-width: 90px;
+  padding: 10px 14px;
+  border-radius: var(--r12);
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  display: flex; flex-direction: column; gap: 2px;
+  transition: background .15s, border-color .15s;
+  cursor: pointer;
+}
+.stat-card:hover { border-color: var(--g); background: var(--gl); }
+.stat-card.active { border-color: var(--g); background: var(--gl); }
+.stat-num {
+  font-size: 22px; font-weight: 800; color: var(--t1);
+  font-family: 'DM Mono', monospace; line-height: 1;
+}
+.stat-lbl {
+  font-size: 10px; font-weight: 700; color: var(--t3);
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.stat-bar-line {
+  height: 3px; border-radius: 99px; margin-top: 6px;
+}
+
+/* ── MOBILE TABS ── */
+.mobile-tabs {
+  display: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  padding: 0 12px;
+  gap: 4px;
+  scrollbar-width: none;
+}
+.mobile-tabs::-webkit-scrollbar { display: none; }
+.mobile-tab {
+  padding: 10px 16px; white-space: nowrap;
+  font-size: 12px; font-weight: 700; color: var(--t3);
+  border-bottom: 2px solid transparent;
+  cursor: pointer; transition: all .15s; flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px;
+  background: none; border-top: none; border-left: none; border-right: none;
+  font-family: inherit;
+}
+.mobile-tab.active { color: var(--g); border-bottom-color: var(--g); }
+.mobile-tab-dot { width: 8px; height: 8px; border-radius: 50%; }
+.mobile-tab-count {
+  background: var(--bg); color: var(--t4);
+  font-size: 10px; padding: 1px 6px; border-radius: 99px;
+  font-family: 'DM Mono', monospace;
+}
+.mobile-tab.active .mobile-tab-count { background: var(--gm); color: var(--gd); }
+
+@media (max-width: 768px) {
+  .mobile-tabs { display: flex; }
+  #board-wrap {
+    padding: 14px 12px 48px;
+    flex-direction: column;
+  }
+  .kanban-col {
+    width: 100% !important;
+    max-height: none;
+    display: none;
+  }
+  .kanban-col.mobile-active { display: flex; }
+  .col-add-btn { display: none; }
+  .filter-bar { display: none !important; }
+}
+
+@media (min-width: 769px) {
+  .mobile-tabs { display: none !important; }
+}
+
 </style>
 </head>
 <body>
@@ -838,6 +923,13 @@ header {
       <option value="">Área</option>
     </select>
   </div>
+
+
+  <!-- STATS BAR -->
+  <div class="stats-bar" id="stats-bar"></div>
+
+  <!-- MOBILE TABS -->
+  <div class="mobile-tabs" id="mobile-tabs"></div>
 
   <!-- BOARD -->
   <div id="board-wrap"></div>
@@ -1788,6 +1880,102 @@ function toast(msg, type='') {
   setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(8px)'; el.style.transition='.3s'; }, 2700);
   setTimeout(()=>el.remove(), 3100);
 }
+
+
+// ── STATS BAR ──────────────────────────────────────────
+function buildStatsBar() {
+  const bar = document.getElementById('stats-bar');
+  const tasks = getFilteredTasks();
+  const total = tasks.length;
+
+  // Build stat per column
+  let html = `
+    <div class="stat-card" onclick="clearColumnFilter()" id="stat-total">
+      <div class="stat-num">${total}</div>
+      <div class="stat-lbl">Total</div>
+      <div class="stat-bar-line" style="background:var(--g)"></div>
+    </div>`;
+
+  columns.forEach(col => {
+    const count = tasks.filter(t => t.status === col.name).length;
+    html += `
+    <div class="stat-card" onclick="filterByColumn('${col.name.replace(/'/g,"\'")}')">
+      <div class="stat-num">${count}</div>
+      <div class="stat-lbl">${col.name}</div>
+      <div class="stat-bar-line" style="background:${col.color}"></div>
+    </div>`;
+  });
+
+  bar.innerHTML = html;
+  bar.classList.add('show');
+}
+
+function filterByColumn(colName) {
+  // highlight active stat card
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+  event?.currentTarget?.classList.add('active');
+  // on mobile, switch tab
+  switchMobileTab(colName);
+}
+
+function clearColumnFilter() {
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('stat-total')?.classList.add('active');
+  const firstCol = columns[0];
+  if (firstCol) switchMobileTab(firstCol.name);
+}
+
+// ── MOBILE TABS ─────────────────────────────────────────
+let activeMobileTab = null;
+
+function buildMobileTabs() {
+  const wrap = document.getElementById('mobile-tabs');
+  const tasks = getFilteredTasks();
+
+  wrap.innerHTML = columns.map((col, i) => {
+    const count = tasks.filter(t => t.status === col.name).length;
+    const isFirst = i === 0;
+    if (isFirst && !activeMobileTab) activeMobileTab = col.name;
+    return `
+    <button class="mobile-tab ${activeMobileTab === col.name ? 'active' : ''}"
+      onclick="switchMobileTab('${col.name.replace(/'/g,"\'")}')">
+      <span class="mobile-tab-dot" style="background:${col.color}"></span>
+      ${col.name}
+      <span class="mobile-tab-count">${count}</span>
+    </button>`;
+  }).join('');
+
+  // Show/hide columns based on active tab
+  applyMobileTabVisibility();
+}
+
+function switchMobileTab(colName) {
+  activeMobileTab = colName;
+  // update tab UI
+  document.querySelectorAll('.mobile-tab').forEach(t => {
+    t.classList.toggle('active', t.textContent.trim().startsWith(colName) ||
+      t.querySelector('.mobile-tab-dot') && t.innerHTML.includes(colName));
+  });
+  buildMobileTabs();
+}
+
+function applyMobileTabVisibility() {
+  if (window.innerWidth > 768) return;
+  document.querySelectorAll('.kanban-col').forEach(col => {
+    const isActive = col.dataset.col === activeMobileTab;
+    col.classList.toggle('mobile-active', isActive);
+  });
+}
+
+// ── PATCH buildBoard to also build stats+tabs ───────────
+const _origBuildBoard = buildBoard;
+buildBoard = function() {
+  _origBuildBoard();
+  buildStatsBar();
+  buildMobileTabs();
+};
+
+window.addEventListener('resize', applyMobileTabVisibility);
 
 // keyboard shortcuts
 document.addEventListener('keydown', e => {
