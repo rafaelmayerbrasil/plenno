@@ -145,6 +145,14 @@ input, select, textarea { font-family: inherit; }
   box-shadow: 0 8px 24px rgba(0,166,81,.4);
 }
 .login-logo svg { width: 30px; height: 30px; fill: white; }
+.login-logo-img {
+  width: 72px; height: 72px;
+  border-radius: 18px;
+  object-fit: cover;
+  margin: 0 auto 20px;
+  display: block;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
 
 .login-card h1 {
   font-size: 22px; font-weight: 800;
@@ -201,6 +209,12 @@ header {
   flex-shrink: 0;
 }
 .h-logo svg { width: 18px; height: 18px; fill: white; }
+.h-logo-img {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
 
 .h-title {
   font-size: 14px; font-weight: 800;
@@ -760,9 +774,7 @@ header {
 ═══════════════════════════════════════ -->
 <div id="login-screen">
   <div class="login-card">
-    <div class="login-logo">
-      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-    </div>
+    <img src="icon-192.png" class="login-logo-img" alt="Plenno">
     <h1>Plenno</h1>
     <p>Organize. Colabore. <em>Flua.</em></p><p style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:-20px;margin-bottom:32px">Seu workspace pessoal de tarefas</p>
     <button class="btn-google" id="btn-login">
@@ -793,9 +805,7 @@ header {
 
   <!-- HEADER -->
   <header>
-    <div class="h-logo">
-      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-    </div>
+    <img src="icon-192.png" class="h-logo-img" alt="Plenno">
     <div class="h-title" id="h-title-text">Plenno <span>Kanban</span></div>
     <div class="h-actions">
       <button class="h-btn primary" id="btn-new-task" style="display:none">
