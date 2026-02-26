@@ -1013,6 +1013,29 @@ header {
 .chamado-hist-meta { font-size: 10px; color: var(--t4); margin-bottom: 2px; font-family: 'DM Mono', monospace; }
 .chamado-hist-text { font-size: 13px; color: var(--t2); line-height: 1.5; }
 
+
+/* ── SECTION COLORS ── */
+:root {
+  --header-color: #007A3D;
+}
+[data-section="tarefas"]  { --header-color: #007A3D; }
+[data-section="chamados"] { --header-color: #1D4ED8; }
+[data-section="rascunhos"]{ --header-color: #6D28D9; }
+
+header { background: var(--header-color) !important; transition: background .3s !important; }
+.h-btn-icon { transition: background .15s, border-color .15s !important; }
+.plenno-footer { background: var(--header-color) !important; transition: background .3s !important; }
+
+[data-section="chamados"] .main-nav .nav-tab.active { color: #3B82F6; border-bottom-color: #3B82F6; }
+[data-section="rascunhos"] .main-nav .nav-tab.active { color: #8B5CF6; border-bottom-color: #8B5CF6; }
+
+[data-section="chamados"]  .filter-chip.on { background: #2563EB; border-color: #2563EB; }
+[data-section="rascunhos"] .filter-chip.on { background: #7C3AED; border-color: #7C3AED; }
+[data-section="chamados"]  .btn-primary { background: #2563EB; }
+[data-section="chamados"]  .btn-primary:hover { background: #1D4ED8; }
+[data-section="rascunhos"] .btn-primary { background: #7C3AED; }
+[data-section="rascunhos"] .btn-primary:hover { background: #6D28D9; }
+
 </style>
 </head>
 <body>
@@ -1090,7 +1113,6 @@ header {
 
   <!-- FILTER BAR -->
   <div class="filter-bar" id="filter-bar" style="display:none">
-    <button class="btn btn-primary btn-sm" id="btn-new-task" onclick="openTaskModal()" style="margin-right:4px">＋ Nova Tarefa</button>
     <span class="filter-label">Filtrar:</span>
     <button class="filter-chip on" data-filter="all">Todos</button>
     <button class="filter-chip" data-filter="mine">Minhas</button>
@@ -1105,6 +1127,8 @@ header {
     <select class="filter-select" id="filter-area">
       <option value="">Área</option>
     </select>
+    <div style="flex:1"></div>
+    <button class="btn btn-primary btn-sm" id="btn-new-task" onclick="openTaskModal()">＋ Nova Tarefa</button>
   </div>
 
 
@@ -1120,16 +1144,22 @@ header {
 
   <!-- ═══════════ CHAMADOS SECTION ═══════════ -->
   <div id="chamados-section">
-    <div class="chamados-toolbar">
-      <input type="text" class="chamados-search" id="chamados-search"
-        placeholder="🔍 Buscar chamado..." oninput="renderChamados()">
-      <select class="filter-select" id="chamados-filter-status" onchange="renderChamados()">
-        <option value="">Todos os status</option>
-        <option value="Aberto">Aberto</option>
-        <option value="Em atendimento">Em atendimento</option>
-        <option value="Aguardando">Aguardando</option>
-        <option value="Resolvido">Resolvido</option>
+    <div class="filter-bar show" style="position:static;border-radius:var(--r8)">
+      <span class="filter-label">Filtrar:</span>
+      <button class="filter-chip on" data-ch-filter="all" onclick="setChamadoFilter('all',this)">Todos</button>
+      <button class="filter-chip" data-ch-filter="Aberto" onclick="setChamadoFilter('Aberto',this)">Abertos</button>
+      <button class="filter-chip" data-ch-filter="Em atendimento" onclick="setChamadoFilter('Em atendimento',this)">Em atendimento</button>
+      <button class="filter-chip" data-ch-filter="Aguardando" onclick="setChamadoFilter('Aguardando',this)">Aguardando</button>
+      <button class="filter-chip" data-ch-filter="Resolvido" onclick="setChamadoFilter('Resolvido',this)">Resolvidos</button>
+      <select class="filter-select" id="chamados-filter-prio" onchange="renderChamados()">
+        <option value="">Prioridade</option>
+        <option value="Alta">Alta</option>
+        <option value="Média">Média</option>
+        <option value="Baixa">Baixa</option>
       </select>
+      <input type="text" class="filter-select" id="chamados-search" style="min-width:160px"
+        placeholder="🔍 Buscar..." oninput="renderChamados()">
+      <div style="flex:1"></div>
       <button class="btn btn-primary btn-sm" onclick="openChamadoModal()">＋ Novo Chamado</button>
     </div>
     <div class="chamado-list" id="chamado-list"></div>
@@ -1668,9 +1698,8 @@ function taskCardHTML(t, today) {
       ${t.area ? `<span class="tag tag-area">${esc(t.area)}</span>` : ''}
     </div>
     <div class="card-footer">
-      ${t.date ? `<span class="card-date ${vencida?'overdue':isToday?'today':''}">
-        📅 ${dateStr}${vencida?' ⚠':isToday?' •':''}
-      </span>` : ''}
+      ${t.completedAt ? (() => { const [y,m,d]=t.completedAt.split('-'); return `<span class="card-date" style="color:var(--g)">✅ ${d}/${m}/${y}</span>`; })()
+        : t.date ? `<span class="card-date ${vencida?'overdue':isToday?'today':''}">📅 ${dateStr}${vencida?' ⚠':isToday?' •':''}</span>` : ''}
       <div class="card-meta">
         ${hasSubs ? `<span class="card-subtask-badge ${subDone===subs.length&&subs.length>0?'done':''}">☑ ${subDone}/${subs.length}</span>` : ''}
         ${comments > 0 ? `<span class="card-comment-badge">💬 ${comments}</span>` : ''}
@@ -1702,11 +1731,14 @@ async function onDrop(e, el) {
   if (!dragSrcId || !newStatus) return;
   const task = allTasks.find(t => t.id === dragSrcId);
   if (!task || task.status === newStatus) return;
+  const dragToday = new Date().toISOString().slice(0,10);
+  const dragCompleted = newStatus === 'Concluído' ? dragToday : null;
   task.status = newStatus;
+  task.completedAt = dragCompleted;
   buildBoard();
   try {
-    await db.collection('tasks').doc(dragSrcId).update({ status: newStatus });
-    toast(`Movido para "${newStatus}"`);
+    await db.collection('tasks').doc(dragSrcId).update({ status: newStatus, completedAt: dragCompleted });
+    toast(`Movido para "${newStatus}"${dragCompleted ? ' ✅' : ''}`);
   } catch(e) { toast('Erro ao mover tarefa','red'); }
   dragSrcId = null;
 }
@@ -1832,13 +1864,23 @@ async function saveTask() {
     inp.style.borderColor='var(--red)'; inp.focus();
     setTimeout(()=>inp.style.borderColor='',1500); return;
   }
+  const newStatus = document.getElementById('t-status').value;
+  const today = new Date().toISOString().slice(0,10);
+  const existingTask = editingTaskId ? allTasks.find(t=>t.id===editingTaskId) : null;
+  const wasCompleted = existingTask?.status === 'Concluído';
+  const isCompleted  = newStatus === 'Concluído';
+  const completedAt  = isCompleted
+    ? (wasCompleted && existingTask?.completedAt ? existingTask.completedAt : today)
+    : null;
+
   const data = {
     title, desc:  document.getElementById('t-desc').value.trim(),
-    status: document.getElementById('t-status').value,
+    status: newStatus,
     prio:   document.getElementById('t-prio').value,
     date:   document.getElementById('t-date').value,
     area:   document.getElementById('t-area').value.trim(),
     subtasks: modalSubs,
+    completedAt,
   };
   try {
     if (editingTaskId) {
@@ -2287,11 +2329,15 @@ let currentSection = 'tarefas';
 
 function switchSection(section) {
   currentSection = section;
+  // Apply section color to body
+  document.body.setAttribute('data-section', section);
+
   // nav tabs
   document.querySelectorAll('.nav-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.section === section);
   });
-  // sections
+
+  // sections visibility
   const boardWrap    = document.getElementById('board-wrap');
   const statsBar     = document.getElementById('stats-bar');
   const filterBar    = document.getElementById('filter-bar');
@@ -2314,6 +2360,7 @@ function switchSection(section) {
 // Show nav after login
 function showMainNav() {
   document.getElementById('main-nav').classList.add('show');
+  document.body.setAttribute('data-section', 'tarefas');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2337,13 +2384,24 @@ async function loadChamados() {
   } catch(e) { console.warn('loadChamados error', e); }
 }
 
+let chamadoFilterStatus = 'all';
+
+function setChamadoFilter(val, el) {
+  chamadoFilterStatus = val;
+  document.querySelectorAll('[data-ch-filter]').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  renderChamados();
+}
+
 function renderChamados() {
-  const list    = document.getElementById('chamado-list');
-  const search  = document.getElementById('chamados-search').value.toLowerCase();
-  const status  = document.getElementById('chamados-filter-status').value;
+  const list   = document.getElementById('chamado-list');
+  const search = (document.getElementById('chamados-search')?.value||'').toLowerCase();
+  const prio   = document.getElementById('chamados-filter-prio')?.value||'';
+  const status = chamadoFilterStatus;
 
   let filtered = allChamados.filter(c => {
-    if (status && c.status !== status) return false;
+    if (status !== 'all' && c.status !== status) return false;
+    if (prio && c.prio !== prio) return false;
     if (search && !((c.titulo||'').toLowerCase().includes(search) ||
                     (c.proto||'').toLowerCase().includes(search)  ||
                     (c.sistema||'').toLowerCase().includes(search))) return false;
@@ -2373,7 +2431,8 @@ function renderChamados() {
       <div class="chamado-meta">
         ${c.sistema     ? `<span>💻 ${esc(c.sistema)}</span>` : ''}
         ${c.responsavel ? `<span>👤 ${esc(c.responsavel)}</span>` : ''}
-        ${c.prazo       ? `<span style="${vencido?'color:var(--red);font-weight:700':''}">📅 ${prazoStr}${vencido?' ⚠':''}</span>` : ''}
+        ${c.completedAt ? (() => { const [y,m,d]=c.completedAt.split('-'); return `<span style="color:var(--g);font-weight:600">✅ Resolvido em ${d}/${m}/${y}</span>`; })()
+          : c.prazo ? `<span style="${vencido?'color:var(--red);font-weight:700':''}">📅 ${prazoStr}${vencido?' ⚠':''}</span>` : ''}
         ${c.prio        ? `<span>🔺 ${esc(c.prio)}</span>` : ''}
       </div>
     </div>`;
@@ -2423,14 +2482,24 @@ async function saveChamado() {
     inp.style.borderColor='var(--red)'; inp.focus();
     setTimeout(()=>inp.style.borderColor='',1500); return;
   }
+  const chStatus = document.getElementById('ch-status').value;
+  const chToday  = new Date().toISOString().slice(0,10);
+  const existingCh = editingChamadoId ? allChamados.find(c=>c.id===editingChamadoId) : null;
+  const chWasResolved = existingCh?.status === 'Resolvido';
+  const chIsResolved  = chStatus === 'Resolvido';
+  const chCompletedAt = chIsResolved
+    ? (chWasResolved && existingCh?.completedAt ? existingCh.completedAt : chToday)
+    : null;
+
   const data = {
     titulo, proto:       document.getElementById('ch-proto').value.trim(),
     sistema:     document.getElementById('ch-sistema').value.trim(),
     responsavel: document.getElementById('ch-responsavel').value.trim(),
     prazo:       document.getElementById('ch-prazo').value,
     obs:         document.getElementById('ch-obs').value.trim(),
-    status:      document.getElementById('ch-status').value,
+    status:      chStatus,
     prio:        document.getElementById('ch-prio').value,
+    completedAt: chCompletedAt,
   };
   try {
     if (editingChamadoId) {
@@ -2624,7 +2693,7 @@ document.addEventListener('keydown', e => {
 </script>
 
 <!-- FOOTER CREDIT -->
-<div id="plenno-footer" style="
+<div id="plenno-footer" class="plenno-footer" style="
   position:fixed;bottom:0;left:0;right:0;
   height:28px;
   background:var(--gd);
