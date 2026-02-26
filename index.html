@@ -838,7 +838,7 @@ header {
   }
   .kanban-col.mobile-active { display: flex; }
   .col-add-btn { display: none; }
-  .filter-bar { display: none !important; }
+  #filter-bar { display: none !important; }
 }
 
 @media (min-width: 769px) {
@@ -1048,10 +1048,11 @@ header { background: var(--header-color) !important; transition: background .3s 
   }
 
   /* Filter bar wraps on mobile */
-  #chamados-section .filter-bar {
+  #chamados-filter-bar {
     flex-wrap: wrap;
     gap: 6px;
     padding: 10px 12px;
+    display: flex !important;
   }
 
   /* Chips scroll horizontally */
@@ -1061,19 +1062,19 @@ header { background: var(--header-color) !important; transition: background .3s 
   }
 
   /* Search + button full width */
-  #chamados-section .filter-bar input.filter-select {
+  #chamados-filter-bar input.filter-select {
     width: 100%;
     min-width: unset;
     flex: 1 1 100%;
     order: 10;
   }
-  #chamados-section .filter-bar .btn-primary {
+  #chamados-filter-bar .btn-primary {
     flex: 1 1 100%;
     order: 11;
     text-align: center;
     justify-content: center;
   }
-  #chamados-section .filter-bar div[style*="flex:1"] {
+  #chamados-filter-bar div[style*="flex:1"] {
     display: none;
   }
 
@@ -1196,7 +1197,7 @@ header { background: var(--header-color) !important; transition: background .3s 
 
   <!-- ═══════════ CHAMADOS SECTION ═══════════ -->
   <div id="chamados-section">
-    <div class="filter-bar show" style="position:static;border-radius:var(--r8)">
+    <div class="filter-bar show" id="chamados-filter-bar" style="position:static;border-radius:var(--r8)">
       <span class="filter-label">Filtrar:</span>
       <button class="filter-chip on" data-ch-filter="all" onclick="setChamadoFilter('all',this)">Todos</button>
       <button class="filter-chip" data-ch-filter="Aberto" onclick="setChamadoFilter('Aberto',this)">Abertos</button>
