@@ -2325,9 +2325,13 @@ let editingChamadoId = null;
 async function loadChamados() {
   try {
     const snap = await db.collection('chamados')
-      .where('userId', '==', currentUser.uid)
-      .orderBy('createdAt', 'desc').get();
-    allChamados = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      .where('userId', '==', currentUser.uid).get();
+    allChamados = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => {
+        const ta = a.createdAt?.toDate?.() || new Date(0);
+        const tb = b.createdAt?.toDate?.() || new Date(0);
+        return tb - ta;
+      });
     renderChamados();
     updateChamadosBadge();
   } catch(e) { console.warn('loadChamados error', e); }
@@ -2505,9 +2509,13 @@ let allRascunhos = [];
 async function loadRascunhos() {
   try {
     const snap = await db.collection('rascunhos')
-      .where('userId','==',currentUser.uid)
-      .orderBy('createdAt','desc').get();
-    allRascunhos = snap.docs.map(d=>({id:d.id,...d.data()}));
+      .where('userId','==',currentUser.uid).get();
+    allRascunhos = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .sort((a, b) => {
+        const ta = a.createdAt?.toDate?.() || new Date(0);
+        const tb = b.createdAt?.toDate?.() || new Date(0);
+        return tb - ta;
+      });
     renderRascunhos();
     updateRascunhosBadge();
   } catch(e) { console.warn('loadRascunhos error',e); }
