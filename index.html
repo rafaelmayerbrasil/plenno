@@ -1077,9 +1077,7 @@ header {
     <img src="icon-192.png" class="h-logo-img" alt="Plenno">
     <div class="h-title" id="h-title-text">Plenno <span>Kanban</span></div>
     <div class="h-actions">
-      <button class="h-btn primary" id="btn-new-task" style="display:none">
-        <span>＋</span><span class="lbl-new">Nova Tarefa</span>
-      </button>
+
       <button class="h-btn-icon" id="btn-dark" title="Modo escuro">🌙</button>
       <button class="h-btn-icon" id="btn-settings" title="Configurar status">⚙️</button>
       <div class="h-bell-wrap">
@@ -1092,6 +1090,7 @@ header {
 
   <!-- FILTER BAR -->
   <div class="filter-bar" id="filter-bar" style="display:none">
+    <button class="btn btn-primary btn-sm" id="btn-new-task" onclick="openTaskModal()" style="margin-right:4px">＋ Nova Tarefa</button>
     <span class="filter-label">Filtrar:</span>
     <button class="filter-chip on" data-filter="all">Todos</button>
     <button class="filter-chip" data-filter="mine">Minhas</button>
@@ -1479,7 +1478,7 @@ function updateHeaderUser() {
   document.getElementById('um-avatar').src = currentUser.photoURL || '';
   document.getElementById('um-name').textContent = currentUser.displayName || 'Usuário';
   document.getElementById('um-email').textContent = currentUser.email || '';
-  document.getElementById('btn-new-task').style.display = 'flex';
+  
   document.getElementById('filter-bar').style.display = 'flex';
   document.getElementById('h-title-text').innerHTML =
     (currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'Plenno') +
@@ -1490,7 +1489,7 @@ document.getElementById('h-avatar').onclick = () => toggleMenu('user-menu');
 document.getElementById('um-logout').onclick = () => { closeMenus(); auth.signOut(); };
 document.getElementById('um-settings').onclick = () => { closeMenus(); openSettings(); };
 document.getElementById('btn-settings').onclick = openSettings;
-document.getElementById('btn-new-task').onclick = () => openTaskModal();
+
 document.getElementById('btn-dark').onclick = toggleDark;
 document.getElementById('btn-notif').onclick = () => toggleMenu('notif-panel');
 document.getElementById('btn-close-notif').onclick = () => closeMenus();
