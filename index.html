@@ -315,11 +315,17 @@ header {
   display: flex;
   gap: 16px;
   align-items: flex-start;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
 }
+#board-wrap::-webkit-scrollbar { height: 6px; }
+#board-wrap::-webkit-scrollbar-track { background: transparent; }
+#board-wrap::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
 
 .kanban-col {
   flex-shrink: 0;
   width: var(--col-w);
+  scroll-snap-align: start;
   display: flex; flex-direction: column;
   border-radius: var(--r16);
   background: var(--surface);
@@ -1089,6 +1095,8 @@ header { background: var(--header-color) !important; transition: background .3s 
   .rascunho-btn { font-size: 12px; }
 }
 
+.col-dimmed { opacity: 0.35; transition: opacity .2s; }
+.col-dimmed:hover { opacity: 0.7; }
 </style>
 </head>
 <body>
@@ -1181,6 +1189,8 @@ header { background: var(--header-color) !important; transition: background .3s 
       <option value="">Área</option>
     </select>
     <div style="flex:1"></div>
+    <input type="text" id="task-search" class="filter-select" style="min-width:180px;max-width:220px"
+      placeholder="🔍 Buscar tarefa..." oninput="buildBoard()">
     <button class="btn btn-primary btn-sm" id="btn-new-task" onclick="openTaskModal()">＋ Nova Tarefa</button>
   </div>
 
@@ -2280,14 +2290,15 @@ function toast(msg, type='') {
 
 
 // ── STATS BAR ──────────────────────────────────────────
+let activeColFilter = null;
+
 function buildStatsBar() {
   const bar = document.getElementById('stats-bar');
   const tasks = getFilteredTasks();
   const total = tasks.length;
 
-  // Build stat per column
   let html = `
-    <div class="stat-card" onclick="clearColumnFilter()" id="stat-total">
+    <div class="stat-card ${!activeColFilter?'active':''}" onclick="setColFilter(null)" id="stat-total">
       <div class="stat-num">${total}</div>
       <div class="stat-lbl">Total</div>
       <div class="stat-bar-line" style="background:var(--g)"></div>
@@ -2295,8 +2306,9 @@ function buildStatsBar() {
 
   columns.forEach(col => {
     const count = tasks.filter(t => t.status === col.name).length;
+    const isActive = activeColFilter === col.name;
     html += `
-    <div class="stat-card" onclick="filterByColumn('${col.name.replace(/'/g,"\'")}')">
+    <div class="stat-card ${isActive?'active':''}" onclick="setColFilter('${col.name.replace(/'/g,"\'")}')">
       <div class="stat-num">${count}</div>
       <div class="stat-lbl">${col.name}</div>
       <div class="stat-bar-line" style="background:${col.color}"></div>
@@ -2306,6 +2318,27 @@ function buildStatsBar() {
   bar.innerHTML = html;
   bar.classList.add('show');
 }
+
+function setColFilter(colName) {
+  activeColFilter = colName;
+  buildStatsBar();
+  // On mobile: switch tab
+  if (colName) switchMobileTab(colName);
+  // On desktop: scroll board to that column
+  if (colName && window.innerWidth > 768) {
+    const cols = document.querySelectorAll('.kanban-col');
+    cols.forEach(c => {
+      if (c.dataset.col === colName) {
+        c.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+      }
+    });
+  }
+  // Rebuild board with col highlight
+  buildBoard();
+}
+
+function filterByColumn(colName) { setColFilter(colName); }
+function clearColumnFilter() { setColFilter(null); }
 
 function filterByColumn(colName) {
   // highlight active stat card
