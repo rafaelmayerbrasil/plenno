@@ -1669,13 +1669,17 @@ function startTasksListener() {
 
 // ── BOARD ──────────────────────────────────────────────
 function getFilteredTasks() {
-  const today = new Date().toISOString().slice(0,10);
+  const today  = new Date().toISOString().slice(0,10);
+  const search = (document.getElementById('task-search')?.value||'').toLowerCase().trim();
   return allTasks.filter(t => {
     if (filterState.mode === 'mine'    && t.ownerId !== currentUser.uid) return false;
     if (filterState.mode === 'overdue' && (!t.date || t.date >= today)) return false;
     if (filterState.mode === 'today'   && t.date !== today) return false;
     if (filterState.prio && t.prio !== filterState.prio) return false;
     if (filterState.area && t.area !== filterState.area) return false;
+    if (search && !((t.title||'').toLowerCase().includes(search) ||
+                    (t.desc||'').toLowerCase().includes(search)  ||
+                    (t.area||'').toLowerCase().includes(search))) return false;
     return true;
   });
 }
