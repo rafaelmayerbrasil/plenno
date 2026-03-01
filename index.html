@@ -1100,6 +1100,17 @@ header { background: var(--header-color) !important; transition: background .3s 
 </style>
 </head>
 <body>
+<script>
+// Capture share param immediately before any redirect
+(function() {
+  const share = new URLSearchParams(window.location.search).get('share');
+  if (share) {
+    localStorage.setItem('pendingShare', share);
+    sessionStorage.setItem('pendingShare', share);
+    console.log('[Plenno] Share param saved:', share);
+  }
+})();
+</script>
 
 <!-- ═══════════════════════════════════════
      LOADING
@@ -2176,34 +2187,63 @@ function copyShareLink() {
 async function checkShareFromUrl() {
   const params = new URLSearchParams(window.location.search);
   let shareId = params.get('share');
-  // Recover share param saved before OAuth redirect
+
+  // Recover share param saved before OAuth or PWA redirect
   if (!shareId) {
     shareId = localStorage.getItem('pendingShare');
     if (shareId) localStorage.removeItem('pendingShare');
   }
+
+  // Also check sessionStorage (PWA fallback)
+  if (!shareId) {
+    shareId = sessionStorage.getItem('pendingShare');
+    if (shareId) sessionStorage.removeItem('pendingShare');
+  }
+
   if (!shareId) return;
+
+  console.log('[Plenno Share] Checking shareId:', shareId);
+
   try {
     const snap = await db.collection('shares').doc(shareId).get();
-    if (!snap.exists) return;
+    if (!snap.exists) {
+      console.warn('[Plenno Share] Share doc not found:', shareId);
+      return;
+    }
     const { taskId, ownerUid } = snap.data();
-    if (ownerUid === currentUser.uid) return; // own task
-    // check not already shared
+    console.log('[Plenno Share] Found share for task:', taskId);
+
+    if (ownerUid === currentUser.uid) {
+      console.log('[Plenno Share] Own task, skipping');
+      return;
+    }
+
     const task = await db.collection('tasks').doc(taskId).get();
-    if (!task.exists) return;
+    if (!task.exists) {
+      console.warn('[Plenno Share] Task not found:', taskId);
+      return;
+    }
+
     if ((task.data().sharedWith||[]).includes(currentUser.uid)) {
-      // already accepted, just load
       toast('📎 Tarefa já está no seu Plenno');
       window.history.replaceState({}, '', window.location.pathname);
       return;
     }
+
     pendingShareId = { shareId, taskId };
-    document.getElementById('share-accept-banner').classList.add('show');
+    const banner = document.getElementById('share-accept-banner');
+    banner.classList.add('show');
+    console.log('[Plenno Share] Banner shown');
+
     document.getElementById('btn-accept-share').onclick  = () => acceptShare(taskId);
     document.getElementById('btn-dismiss-share').onclick = () => {
-      document.getElementById('share-accept-banner').classList.remove('show');
+      banner.classList.remove('show');
       window.history.replaceState({}, '', window.location.pathname);
     };
-  } catch(e) { console.warn('Share check error', e); }
+  } catch(e) {
+    console.error('[Plenno Share] Error:', e);
+    toast('Erro ao verificar convite: ' + e.message, 'red');
+  }
 }
 
 async function acceptShare(taskId) {
