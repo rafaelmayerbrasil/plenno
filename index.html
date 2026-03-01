@@ -1536,6 +1536,9 @@ const DEFAULT_COLUMNS = [
 // ── AUTH ───────────────────────────────────────────────
 document.getElementById('btn-login').onclick = async () => {
   try {
+    // Save share param before OAuth popup (in case of redirect fallback)
+    const shareParam = new URLSearchParams(window.location.search).get('share');
+    if (shareParam) localStorage.setItem('pendingShare', shareParam);
     const provider = new firebase.auth.GoogleAuthProvider();
     await auth.signInWithPopup(provider);
   } catch(e) { toast('Erro ao entrar: ' + e.message, 'red'); }
@@ -2172,7 +2175,12 @@ function copyShareLink() {
 // ── ACCEPT SHARE ───────────────────────────────────────
 async function checkShareFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  const shareId = params.get('share');
+  let shareId = params.get('share');
+  // Recover share param saved before OAuth redirect
+  if (!shareId) {
+    shareId = localStorage.getItem('pendingShare');
+    if (shareId) localStorage.removeItem('pendingShare');
+  }
   if (!shareId) return;
   try {
     const snap = await db.collection('shares').doc(shareId).get();
