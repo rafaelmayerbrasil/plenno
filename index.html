@@ -1705,7 +1705,19 @@ function buildBoard() {
 
   let html = '';
   columns.forEach(col => {
-    const colTasks = tasks.filter(t => t.status === col.name);
+    const colTasks = tasks.filter(t => t.status === col.name)
+      .sort((a, b) => {
+        // Completed: sort by completedAt desc (newest first)
+        if (col.name === 'Concluído') {
+          const da = a.completedAt || '0';
+          const db2 = b.completedAt || '0';
+          return db2.localeCompare(da);
+        }
+        // Others: sort by date asc (earliest first), no date goes last
+        const da = a.date || '9999-99-99';
+        const db2 = b.date || '9999-99-99';
+        return da.localeCompare(db2);
+      });
     html += `
     <div class="kanban-col" data-col="${esc(col.name)}">
       <div class="col-header">
@@ -1813,7 +1825,8 @@ async function onDrop(e, el) {
   const task = allTasks.find(t => t.id === dragSrcId);
   if (!task || task.status === newStatus) return;
   const dragToday = new Date().toISOString().slice(0,10);
-  const dragCompleted = newStatus === 'Concluído' ? dragToday : null;
+  const existingCompletedAt = task.completedAt;
+  const dragCompleted = newStatus === 'Concluído' ? (existingCompletedAt || dragToday) : null;
   task.status = newStatus;
   task.completedAt = dragCompleted;
   buildBoard();
@@ -1951,7 +1964,7 @@ async function saveTask() {
   const wasCompleted = existingTask?.status === 'Concluído';
   const isCompleted  = newStatus === 'Concluído';
   const completedAt  = isCompleted
-    ? (wasCompleted && existingTask?.completedAt ? existingTask.completedAt : today)
+    ? (existingTask?.completedAt || today)
     : null;
 
   const data = {
