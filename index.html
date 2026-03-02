@@ -1328,6 +1328,10 @@ header { background: var(--header-color) !important; transition: background .3s 
           <input type="text" id="t-area" placeholder="SAP, Automação, Follow Up...">
         </div>
       </div>
+      <div class="fg" id="t-completed-wrap" style="display:none">
+        <label>✅ Data de Conclusão</label>
+        <input type="date" id="t-completed-at" readonly style="background:var(--gl);border-color:var(--g);color:var(--gd);cursor:default">
+      </div>
 
       <!-- SUBTAREFAS -->
       <div class="fg">
@@ -1791,8 +1795,8 @@ function taskCardHTML(t, today) {
       ${t.area ? `<span class="tag tag-area">${esc(t.area)}</span>` : ''}
     </div>
     <div class="card-footer">
-      ${t.completedAt ? (() => { const [y,m,d]=t.completedAt.split('-'); return `<span class="card-date" style="color:var(--g)">✅ ${d}/${m}/${y}</span>`; })()
-        : t.date ? `<span class="card-date ${vencida?'overdue':isToday?'today':''}">📅 ${dateStr}${vencida?' ⚠':isToday?' •':''}</span>` : ''}
+      ${t.date ? `<span class="card-date ${vencida&&!t.completedAt?'overdue':isToday&&!t.completedAt?'today':''}">📅 ${dateStr}${vencida&&!t.completedAt?' ⚠':isToday&&!t.completedAt?' •':''}</span>` : ''}
+      ${t.completedAt ? (() => { const [y,m,d]=t.completedAt.split('-'); return `<span class="card-date" style="color:var(--g);margin-left:4px">✅ ${d}/${m}/${y}</span>`; })() : ''}
       <div class="card-meta">
         ${hasSubs ? `<span class="card-subtask-badge ${subDone===subs.length&&subs.length>0?'done':''}">☑ ${subDone}/${subs.length}</span>` : ''}
         ${comments > 0 ? `<span class="card-comment-badge">💬 ${comments}</span>` : ''}
