@@ -1106,25 +1106,23 @@ header { background: var(--header-color) !important; transition: background .3s 
 }
 .stats-top.show { display: flex; }
 
-.stat-summary {
-  display: flex; gap: 12px;
-}
 .stat-summary-card {
-  padding: 10px 18px;
-  border-radius: var(--r12);
+  padding: 4px 12px;
+  border-radius: var(--r8);
   border: 1.5px solid var(--border);
   background: var(--surface);
-  display: flex; flex-direction: column; gap: 2px;
-  min-width: 100px;
+  display: flex; align-items: center; gap: 6px;
+  cursor: pointer; transition: all .15s;
+  white-space: nowrap;
 }
+.stat-summary-card:hover { border-color: var(--g); }
 .stat-summary-card.active { border-color: var(--g); background: var(--gl); }
 .stat-summary-num {
-  font-size: 22px; font-weight: 800; color: var(--t1);
-  font-family: 'DM Mono', monospace; line-height: 1;
+  font-size: 15px; font-weight: 800; color: var(--t1);
+  font-family: 'DM Mono', monospace;
 }
 .stat-summary-lbl {
-  font-size: 10px; font-weight: 700; color: var(--t3);
-  text-transform: uppercase; letter-spacing: .5px;
+  font-size: 11px; font-weight: 600; color: var(--t3);
 }
 
 /* Col stat badge above each column */
@@ -1141,6 +1139,11 @@ header { background: var(--header-color) !important; transition: background .3s 
 .col-stat-badge.active { color: var(--g); border-bottom-color: var(--g); }
 .col-stat-num { font-size: 20px; display: block; line-height: 1.1; color: var(--t1); }
 .col-stat-bar { height: 2px; border-radius: 99px; margin-top: 4px; opacity: .5; }
+.col-stat-name {
+  font-size: 11px; font-weight: 600; color: var(--t3);
+  display: block; margin-top: 2px;
+  text-transform: uppercase; letter-spacing: .3px;
+}
 
 </style>
 </head>
@@ -1247,14 +1250,11 @@ header { background: var(--header-color) !important; transition: background .3s 
     <div style="flex:1"></div>
     <input type="text" id="task-search" class="filter-select" style="min-width:180px;max-width:220px"
       placeholder="🔍 Buscar tarefa..." oninput="buildBoard()">
+    <div id="stat-summary" style="display:flex;gap:8px;align-items:center"></div>
     <button class="btn btn-primary btn-sm" id="btn-new-task" onclick="openTaskModal()">＋ Nova Tarefa</button>
   </div>
 
 
-  <!-- STATS TOP: Total + Subtotal -->
-  <div class="stats-top" id="stats-top">
-    <div class="stat-summary" id="stat-summary"></div>
-  </div>
   <!-- legacy stats bar hidden -->
   <div id="stats-bar" style="display:none"></div>
 
@@ -1776,6 +1776,7 @@ function buildBoard() {
       <div class="col-stat-badge" data-col="${esc(col.name)}"
         onclick="setColFilter('${col.name.replace(/'/g,"\'")}')">
         <span class="col-stat-num">${colTasks.length}</span>
+        <span class="col-stat-name">${esc(col.name)}</span>
         <div class="col-stat-bar" style="background:${col.color}"></div>
       </div>
       <div class="col-header">
@@ -2421,19 +2422,18 @@ function buildStatsBar() {
   const concludedName = columns.find(c => c.name === 'Concluído')?.name || columns[columns.length-1]?.name;
   const subtotal = tasks.filter(t => t.status !== concludedName).length;
 
-  // ── Top summary: Total + Subtotal ──
+  // ── Summary in filter bar ──
   const summaryEl = document.getElementById('stat-summary');
   if (summaryEl) {
     summaryEl.innerHTML = `
-      <div class="stat-summary-card ${!activeColFilter?'active':''}" onclick="setColFilter(null)" style="cursor:pointer">
-        <div class="stat-summary-num">${total}</div>
-        <div class="stat-summary-lbl">Total</div>
+      <div class="stat-summary-card ${!activeColFilter?'active':''}" onclick="setColFilter(null)">
+        <span class="stat-summary-num">${total}</span>
+        <span class="stat-summary-lbl">Total</span>
       </div>
       <div class="stat-summary-card" style="cursor:default">
-        <div class="stat-summary-num" style="color:var(--g)">${subtotal}</div>
-        <div class="stat-summary-lbl">Em aberto</div>
+        <span class="stat-summary-num" style="color:var(--g)">${subtotal}</span>
+        <span class="stat-summary-lbl">Em aberto</span>
       </div>`;
-    document.getElementById('stats-top').classList.add('show');
   }
 
   // ── Col stat badges (injected into each column header) ──
