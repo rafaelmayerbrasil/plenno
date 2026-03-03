@@ -311,16 +311,21 @@ header {
 #board-wrap {
   flex: 1;
   overflow-x: auto;
+  overflow-y: visible;
   padding: 20px 20px 48px;
   display: flex;
   gap: 16px;
   align-items: flex-start;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  /* Ensure it actually scrolls */
+  min-height: 0;
 }
-#board-wrap::-webkit-scrollbar { height: 6px; }
-#board-wrap::-webkit-scrollbar-track { background: transparent; }
+#board-wrap::-webkit-scrollbar { height: 8px; }
+#board-wrap::-webkit-scrollbar-track { background: var(--bg); border-radius: 99px; }
 #board-wrap::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+#board-wrap::-webkit-scrollbar-thumb:hover { background: var(--t4); }
 
 .kanban-col {
   flex-shrink: 0;
@@ -1136,6 +1141,42 @@ header { background: var(--header-color) !important; transition: background .3s 
 .col-header { cursor: pointer; }
 .col-header:hover .col-stat-badge { color: var(--t2); }
 
+
+/* ── BOARD NAV ARROWS ── */
+.board-nav {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.board-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 32px; height: 56px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--t2);
+  box-shadow: var(--shadow);
+  transition: all .15s;
+}
+.board-arrow:hover { background: var(--gl); color: var(--g); border-color: var(--g); }
+.board-arrow.visible { display: flex; }
+.board-arrow-left  { left: 4px; }
+.board-arrow-right { right: 4px; }
+
+@media (max-width: 768px) {
+  .board-arrow { display: none !important; }
+}
+
 </style>
 </head>
 <body>
@@ -1253,7 +1294,11 @@ header { background: var(--header-color) !important; transition: background .3s 
   <div class="mobile-tabs" id="mobile-tabs"></div>
 
   <!-- BOARD -->
-  <div id="board-wrap"></div>
+  <div class="board-nav" id="board-nav">
+    <button class="board-arrow board-arrow-left" id="board-arrow-left" onclick="scrollBoard(-1)">‹</button>
+    <div id="board-wrap"></div>
+    <button class="board-arrow board-arrow-right" id="board-arrow-right" onclick="scrollBoard(1)">›</button>
+  </div>
 
 
   <!-- ═══════════ CHAMADOS SECTION ═══════════ -->
@@ -2883,6 +2928,37 @@ function promoteRascunho(id) {
   toast('📋 Rascunho aberto como tarefa — salve para confirmar!');
 }
 
+
+
+// ── BOARD SCROLL ARROWS ────────────────────────────────
+function updateBoardArrows() {
+  const wrap = document.getElementById('board-wrap');
+  if (!wrap) return;
+  const leftBtn  = document.getElementById('board-arrow-left');
+  const rightBtn = document.getElementById('board-arrow-right');
+  if (!leftBtn || !rightBtn) return;
+  const canScrollLeft  = wrap.scrollLeft > 10;
+  const canScrollRight = wrap.scrollLeft < (wrap.scrollWidth - wrap.clientWidth - 10);
+  leftBtn.classList.toggle('visible',  canScrollLeft);
+  rightBtn.classList.toggle('visible', canScrollRight);
+}
+
+function scrollBoard(dir) {
+  const wrap = document.getElementById('board-wrap');
+  if (!wrap) return;
+  const colW = 280 + 16; // col width + gap
+  wrap.scrollBy({ left: dir * colW, behavior: 'smooth' });
+  setTimeout(updateBoardArrows, 350);
+}
+
+// Update arrows on scroll and resize
+document.addEventListener('DOMContentLoaded', () => {
+  const wrap = document.getElementById('board-wrap');
+  if (wrap) {
+    wrap.addEventListener('scroll', updateBoardArrows);
+    window.addEventListener('resize', updateBoardArrows);
+  }
+});
 
 // keyboard shortcuts
 document.addEventListener('keydown', e => {
