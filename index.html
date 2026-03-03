@@ -1097,6 +1097,51 @@ header { background: var(--header-color) !important; transition: background .3s 
 
 .col-dimmed { opacity: 0.35; transition: opacity .2s; }
 .col-dimmed:hover { opacity: 0.7; }
+
+/* ── STATS REDESIGN ── */
+.stats-top {
+  display: none;
+  padding: 12px 20px 0;
+  gap: 12px;
+}
+.stats-top.show { display: flex; }
+
+.stat-summary {
+  display: flex; gap: 12px;
+}
+.stat-summary-card {
+  padding: 10px 18px;
+  border-radius: var(--r12);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 100px;
+}
+.stat-summary-card.active { border-color: var(--g); background: var(--gl); }
+.stat-summary-num {
+  font-size: 22px; font-weight: 800; color: var(--t1);
+  font-family: 'DM Mono', monospace; line-height: 1;
+}
+.stat-summary-lbl {
+  font-size: 10px; font-weight: 700; color: var(--t3);
+  text-transform: uppercase; letter-spacing: .5px;
+}
+
+/* Col stat badge above each column */
+.col-stat-badge {
+  font-size: 11px; font-weight: 700;
+  color: var(--t3); font-family: 'DM Mono', monospace;
+  text-align: center; padding: 4px 0 6px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: color .15s;
+}
+.col-stat-badge:hover { color: var(--t1); }
+.col-stat-badge.active { color: var(--g); border-bottom-color: var(--g); }
+.col-stat-num { font-size: 20px; display: block; line-height: 1.1; color: var(--t1); }
+.col-stat-bar { height: 2px; border-radius: 99px; margin-top: 4px; opacity: .5; }
+
 </style>
 </head>
 <body>
@@ -1206,8 +1251,12 @@ header { background: var(--header-color) !important; transition: background .3s 
   </div>
 
 
-  <!-- STATS BAR -->
-  <div class="stats-bar" id="stats-bar"></div>
+  <!-- STATS TOP: Total + Subtotal -->
+  <div class="stats-top" id="stats-top">
+    <div class="stat-summary" id="stat-summary"></div>
+  </div>
+  <!-- legacy stats bar hidden -->
+  <div id="stats-bar" style="display:none"></div>
 
   <!-- MOBILE TABS -->
   <div class="mobile-tabs" id="mobile-tabs"></div>
@@ -1723,11 +1772,15 @@ function buildBoard() {
         return da.localeCompare(db2);
       });
     html += `
-    <div class="kanban-col" data-col="${esc(col.name)}">
+    <div class="kanban-col ${activeColFilter && activeColFilter !== col.name ? 'col-dimmed' : ''}" data-col="${esc(col.name)}">
+      <div class="col-stat-badge" data-col="${esc(col.name)}"
+        onclick="setColFilter('${col.name.replace(/'/g,"\'")}')">
+        <span class="col-stat-num">${colTasks.length}</span>
+        <div class="col-stat-bar" style="background:${col.color}"></div>
+      </div>
       <div class="col-header">
         <div class="col-dot" style="background:${col.color}"></div>
         <div class="col-name">${esc(col.name)}</div>
-        <div class="col-count">${colTasks.length}</div>
       </div>
       <div class="col-cards" data-col="${esc(col.name)}"
         ondragover="onDragOver(event)" ondrop="onDrop(event,this)"
@@ -2362,30 +2415,39 @@ function toast(msg, type='') {
 let activeColFilter = null;
 
 function buildStatsBar() {
-  const bar = document.getElementById('stats-bar');
   const tasks = getFilteredTasks();
   const total = tasks.length;
+  // Subtotal = all except "Concluído" (or last column if named differently)
+  const concludedName = columns.find(c => c.name === 'Concluído')?.name || columns[columns.length-1]?.name;
+  const subtotal = tasks.filter(t => t.status !== concludedName).length;
 
-  let html = `
-    <div class="stat-card ${!activeColFilter?'active':''}" onclick="setColFilter(null)" id="stat-total">
-      <div class="stat-num">${total}</div>
-      <div class="stat-lbl">Total</div>
-      <div class="stat-bar-line" style="background:var(--g)"></div>
-    </div>`;
+  // ── Top summary: Total + Subtotal ──
+  const summaryEl = document.getElementById('stat-summary');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="stat-summary-card ${!activeColFilter?'active':''}" onclick="setColFilter(null)" style="cursor:pointer">
+        <div class="stat-summary-num">${total}</div>
+        <div class="stat-summary-lbl">Total</div>
+      </div>
+      <div class="stat-summary-card" style="cursor:default">
+        <div class="stat-summary-num" style="color:var(--g)">${subtotal}</div>
+        <div class="stat-summary-lbl">Em aberto</div>
+      </div>`;
+    document.getElementById('stats-top').classList.add('show');
+  }
 
+  // ── Col stat badges (injected into each column header) ──
   columns.forEach(col => {
     const count = tasks.filter(t => t.status === col.name).length;
     const isActive = activeColFilter === col.name;
-    html += `
-    <div class="stat-card ${isActive?'active':''}" onclick="setColFilter('${col.name.replace(/'/g,"\'")}')">
-      <div class="stat-num">${count}</div>
-      <div class="stat-lbl">${col.name}</div>
-      <div class="stat-bar-line" style="background:${col.color}"></div>
-    </div>`;
+    const badgeEl = document.querySelector(`.col-stat-badge[data-col="${col.name}"]`);
+    if (badgeEl) {
+      badgeEl.innerHTML = `<span class="col-stat-num">${count}</span>`;
+      badgeEl.className = `col-stat-badge ${isActive ? 'active' : ''}`;
+      badgeEl.style.borderBottomColor = isActive ? col.color : '';
+      badgeEl.style.color = isActive ? col.color : '';
+    }
   });
-
-  bar.innerHTML = html;
-  bar.classList.add('show');
 }
 
 function setColFilter(colName) {
