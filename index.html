@@ -1127,23 +1127,14 @@ header { background: var(--header-color) !important; transition: background .3s 
 
 /* Col stat badge above each column */
 .col-stat-badge {
-  font-size: 11px; font-weight: 700;
-  color: var(--t3); font-family: 'DM Mono', monospace;
-  text-align: center; padding: 4px 0 6px;
-  border-bottom: 2px solid var(--border);
-  margin-bottom: 2px;
-  cursor: pointer;
-  transition: color .15s;
+  font-size: 13px; font-weight: 700;
+  color: var(--t4); font-family: 'DM Mono', monospace;
+  background: var(--bg); border-radius: 99px;
+  padding: 2px 8px; transition: color .15s;
 }
-.col-stat-badge:hover { color: var(--t1); }
-.col-stat-badge.active { color: var(--g); border-bottom-color: var(--g); }
-.col-stat-num { font-size: 20px; display: block; line-height: 1.1; color: var(--t1); }
-.col-stat-bar { height: 2px; border-radius: 99px; margin-top: 4px; opacity: .5; }
-.col-stat-name {
-  font-size: 11px; font-weight: 600; color: var(--t3);
-  display: block; margin-top: 2px;
-  text-transform: uppercase; letter-spacing: .3px;
-}
+.col-stat-badge.active { color: var(--g); }
+.col-header { cursor: pointer; }
+.col-header:hover .col-stat-badge { color: var(--t2); }
 
 </style>
 </head>
@@ -1773,15 +1764,11 @@ function buildBoard() {
       });
     html += `
     <div class="kanban-col ${activeColFilter && activeColFilter !== col.name ? 'col-dimmed' : ''}" data-col="${esc(col.name)}">
-      <div class="col-stat-badge" data-col="${esc(col.name)}"
+      <div class="col-header" data-col="${esc(col.name)}"
         onclick="setColFilter('${col.name.replace(/'/g,"\'")}')">
-        <span class="col-stat-num">${colTasks.length}</span>
-        <span class="col-stat-name">${esc(col.name)}</span>
-        <div class="col-stat-bar" style="background:${col.color}"></div>
-      </div>
-      <div class="col-header">
         <div class="col-dot" style="background:${col.color}"></div>
         <div class="col-name">${esc(col.name)}</div>
+        <div class="col-count col-stat-badge" data-col="${esc(col.name)}">${colTasks.length}</div>
       </div>
       <div class="col-cards" data-col="${esc(col.name)}"
         ondragover="onDragOver(event)" ondrop="onDrop(event,this)"
@@ -2442,10 +2429,13 @@ function buildStatsBar() {
     const isActive = activeColFilter === col.name;
     const badgeEl = document.querySelector(`.col-stat-badge[data-col="${col.name}"]`);
     if (badgeEl) {
-      badgeEl.innerHTML = `<span class="col-stat-num">${count}</span>`;
-      badgeEl.className = `col-stat-badge ${isActive ? 'active' : ''}`;
-      badgeEl.style.borderBottomColor = isActive ? col.color : '';
+      badgeEl.textContent = count;
+      badgeEl.className = `col-count col-stat-badge ${isActive ? 'active' : ''}`;
       badgeEl.style.color = isActive ? col.color : '';
+    }
+    const headerEl = document.querySelector(`.col-header[data-col="${col.name}"]`);
+    if (headerEl) {
+      headerEl.style.cursor = 'pointer';
     }
   });
 }
