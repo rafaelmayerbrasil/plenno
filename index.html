@@ -2088,8 +2088,8 @@ async function saveTask() {
     } else {
       const ref = await db.collection('tasks').add({
         ...data, ownerId: currentUser.uid,
-        sharedWith: [], commentCount: 0,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        sharedWith: [], commentCount: 0
+        // createdAt already in data
       });
       allTasks.unshift({ id:ref.id, ...data, ownerId:currentUser.uid, sharedWith:[], commentCount:0 });
       toast('✅ Tarefa criada!');
@@ -2707,7 +2707,12 @@ function renderChamados() {
       <div class="chamado-meta">
         ${c.sistema     ? `<span>💻 ${esc(c.sistema)}</span>` : ''}
         ${c.responsavel ? `<span>👤 ${esc(c.responsavel)}</span>` : ''}
-        ${c.createdAt ? (() => { const [y,m,d]=c.createdAt.split('-'); return `<span title="Criação">🗓 ${d}/${m}/${y}</span>`; })() : ''}
+        ${c.createdAt ? (() => {
+          const raw = c.createdAt;
+          const str = raw?.toDate ? raw.toDate().toISOString().slice(0,10) : String(raw).slice(0,10);
+          const [y,m,d]=str.split('-');
+          return `<span title="Criação">🗓 ${d}/${m}/${y}</span>`;
+        })() : ''}
         ${c.prazo ? `<span style="${vencido&&!c.completedAt?'color:var(--red);font-weight:700':''}">📅 ${prazoStr}${vencido&&!c.completedAt?' ⚠':''}</span>` : ''}
         ${c.completedAt ? (() => { const [y,m,d]=c.completedAt.split('-'); return `<span style="color:var(--g);font-weight:600">✅ ${d}/${m}/${y}</span>`; })() : ''}
         ${c.prio        ? `<span>🔺 ${esc(c.prio)}</span>` : ''}
@@ -2767,7 +2772,10 @@ async function saveChamado() {
   const chCompletedAt = chIsResolved
     ? (chWasResolved && existingCh?.completedAt ? existingCh.completedAt : chToday)
     : null;
-  const chCreatedAt = existingCh?.createdAt || chToday;
+  const rawChCreated = existingCh?.createdAt;
+  const chCreatedAt = rawChCreated
+    ? (rawChCreated.toDate ? rawChCreated.toDate().toISOString().slice(0,10) : String(rawChCreated).slice(0,10))
+    : chToday;
 
   const data = {
     titulo, proto:       document.getElementById('ch-proto').value.trim(),
@@ -2788,8 +2796,8 @@ async function saveChamado() {
       toast('✏️ Chamado atualizado!');
     } else {
       const ref = await db.collection('chamados').add({
-        ...data, userId: currentUser.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        ...data, userId: currentUser.uid
+        // createdAt already in data
       });
       allChamados.unshift({ id:ref.id, ...data, userId:currentUser.uid });
       toast('🎫 Chamado registrado!');
