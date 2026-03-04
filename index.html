@@ -1420,9 +1420,15 @@ header { background: var(--header-color) !important; transition: background .3s 
           <input type="text" id="t-area" placeholder="SAP, Automação, Follow Up...">
         </div>
       </div>
-      <div class="fg" id="t-completed-wrap" style="display:none">
-        <label>✅ Data de Conclusão</label>
-        <input type="date" id="t-completed-at" readonly style="background:var(--gl);border-color:var(--g);color:var(--gd);cursor:default">
+      <div class="fg-row" id="t-dates-row" style="display:flex;gap:12px">
+        <div class="fg">
+          <label>📅 Criação</label>
+          <input type="date" id="t-created-at" readonly style="background:var(--bg);border-color:var(--border);color:var(--t3);cursor:default;font-size:12px">
+        </div>
+        <div class="fg" id="t-completed-wrap" style="display:none">
+          <label>✅ Conclusão</label>
+          <input type="date" id="t-completed-at" readonly style="background:var(--gl);border-color:var(--g);color:var(--gd);cursor:default;font-size:12px">
+        </div>
       </div>
 
       <!-- SUBTAREFAS -->
@@ -1558,7 +1564,7 @@ header { background: var(--header-color) !important; transition: background .3s 
       </div>
       <div class="fg-row">
         <div class="fg">
-          <label>Prazo / Previsão</label>
+          <label>Data Prevista</label>
           <input type="date" id="ch-prazo">
         </div>
         <div class="fg">
@@ -2701,8 +2707,9 @@ function renderChamados() {
       <div class="chamado-meta">
         ${c.sistema     ? `<span>💻 ${esc(c.sistema)}</span>` : ''}
         ${c.responsavel ? `<span>👤 ${esc(c.responsavel)}</span>` : ''}
-        ${c.completedAt ? (() => { const [y,m,d]=c.completedAt.split('-'); return `<span style="color:var(--g);font-weight:600">✅ Resolvido em ${d}/${m}/${y}</span>`; })()
-          : c.prazo ? `<span style="${vencido?'color:var(--red);font-weight:700':''}">📅 ${prazoStr}${vencido?' ⚠':''}</span>` : ''}
+        ${c.createdAt ? (() => { const [y,m,d]=c.createdAt.split('-'); return `<span title="Criação">🗓 ${d}/${m}/${y}</span>`; })() : ''}
+        ${c.prazo ? `<span style="${vencido&&!c.completedAt?'color:var(--red);font-weight:700':''}">📅 ${prazoStr}${vencido&&!c.completedAt?' ⚠':''}</span>` : ''}
+        ${c.completedAt ? (() => { const [y,m,d]=c.completedAt.split('-'); return `<span style="color:var(--g);font-weight:600">✅ ${d}/${m}/${y}</span>`; })() : ''}
         ${c.prio        ? `<span>🔺 ${esc(c.prio)}</span>` : ''}
       </div>
     </div>`;
@@ -2760,6 +2767,7 @@ async function saveChamado() {
   const chCompletedAt = chIsResolved
     ? (chWasResolved && existingCh?.completedAt ? existingCh.completedAt : chToday)
     : null;
+  const chCreatedAt = existingCh?.createdAt || chToday;
 
   const data = {
     titulo, proto:       document.getElementById('ch-proto').value.trim(),
@@ -2770,6 +2778,7 @@ async function saveChamado() {
     status:      chStatus,
     prio:        document.getElementById('ch-prio').value,
     completedAt: chCompletedAt,
+    createdAt:   chCreatedAt,
   };
   try {
     if (editingChamadoId) {
