@@ -2669,6 +2669,15 @@ function renderChamados() {
     return true;
   });
 
+  // Sort: não-resolvidos por prazo (vencidos primeiro, sem prazo por último), depois resolvidos por prazo
+  const far = '9999-99-99';
+  filtered.sort((a, b) => {
+    const aResolvido = a.status === 'Resolvido' ? 1 : 0;
+    const bResolvido = b.status === 'Resolvido' ? 1 : 0;
+    if (aResolvido !== bResolvido) return aResolvido - bResolvido;
+    return (a.prazo || far).localeCompare(b.prazo || far);
+  });
+
   if (!filtered.length) {
     list.innerHTML = `<div class="chamados-empty">
       <div class="chamados-empty-icon">🎫</div>
