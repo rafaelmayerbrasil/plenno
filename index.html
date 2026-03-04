@@ -960,8 +960,10 @@ header {
 /* ── RASCUNHOS SECTION ── */
 #rascunhos-section {
   display: none; flex: 1; padding: 20px;
-  flex-direction: column; gap: 16px; max-width: 800px; width: 100%;
-  margin: 0 auto;
+  flex-direction: column; gap: 16px;
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow-y: auto;
 }
 #rascunhos-section.show { display: flex; }
 
@@ -2602,6 +2604,8 @@ function switchSection(section) {
   const chamadosSec  = document.getElementById('chamados-section');
   const rascunhosSec = document.getElementById('rascunhos-section');
 
+  const boardNav = document.getElementById('board-nav');
+  if (boardNav) boardNav.style.display = section === 'tarefas' ? '' : 'none';
   boardWrap.style.display    = section === 'tarefas' ? '' : 'none';
   statsBar.style.display     = section === 'tarefas' ? '' : 'none';
   filterBar.style.display    = section === 'tarefas' ? '' : 'none';
