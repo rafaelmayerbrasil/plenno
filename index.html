@@ -1988,6 +1988,22 @@ function openTaskModal(taskId = '', defaultStatus = '') {
   document.getElementById('t-date').value  = task?.date  || '';
   document.getElementById('t-area').value  = task?.area  || '';
 
+  // createdAt field
+  const _rawCr = task?.createdAt;
+  const _crStr = _rawCr
+    ? (_rawCr.toDate ? _rawCr.toDate().toISOString().slice(0,10) : String(_rawCr).slice(0,10))
+    : new Date().toISOString().slice(0,10);
+  document.getElementById('t-created-at').value = _crStr;
+
+  // completedAt field
+  const _completedWrap = document.getElementById('t-completed-wrap');
+  if (task?.completedAt) {
+    document.getElementById('t-completed-at').value = task.completedAt;
+    _completedWrap.style.display = 'block';
+  } else {
+    _completedWrap.style.display = 'none';
+  }
+
   // Populate status select
   const statusSel = document.getElementById('t-status');
   statusSel.innerHTML = columns.map(c =>
@@ -2070,6 +2086,12 @@ async function saveTask() {
     ? (existingTask?.completedAt || today)
     : null;
 
+  // Normalize existing createdAt (may be Firestore Timestamp or string)
+  const rawCreated = existingTask?.createdAt;
+  const createdAt = rawCreated
+    ? (rawCreated.toDate ? rawCreated.toDate().toISOString().slice(0,10) : String(rawCreated).slice(0,10))
+    : today;
+
   const data = {
     title, desc:  document.getElementById('t-desc').value.trim(),
     status: newStatus,
@@ -2078,6 +2100,7 @@ async function saveTask() {
     area:   document.getElementById('t-area').value.trim(),
     subtasks: modalSubs,
     completedAt,
+    createdAt,
   };
   try {
     if (editingTaskId) {
