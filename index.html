@@ -187,7 +187,7 @@ input, select, textarea { font-family: inherit; }
 /* ═══════════════════════════════════════
    APP SHELL
 ═══════════════════════════════════════ */
-#app { display: none; flex-direction: column; min-height: 100vh; }
+#app { display: none; flex-direction: column; min-height: 100vh; align-items: stretch; }
 #app.show { display: flex; }
 
 /* ── HEADER ── */
@@ -890,9 +890,8 @@ header {
   flex-direction: column; gap: 16px;
   justify-content: flex-start;
   align-items: stretch;
-  align-self: flex-start;
-  width: 100%;
   overflow-y: auto;
+  min-height: 0;
 }
 #chamados-section.show { display: flex; }
 
@@ -1154,6 +1153,7 @@ header { background: var(--header-color) !important; transition: background .3s 
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  align-items: stretch;
 }
 .board-arrow {
   position: absolute;
