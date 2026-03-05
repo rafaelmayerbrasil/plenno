@@ -1867,16 +1867,21 @@ function buildBoard() {
   columns.forEach(col => {
     const colTasks = tasks.filter(t => t.status === col.name)
       .sort((a, b) => {
-        // Completed: sort by completedAt desc (newest first)
+        // Concluído: mais recente primeiro
         if (col.name === 'Concluído') {
-          const da = a.completedAt || '0';
-          const db2 = b.completedAt || '0';
-          return db2.localeCompare(da);
+          return (b.completedAt || '0').localeCompare(a.completedAt || '0');
         }
-        // Others: sort by date asc (earliest first), no date goes last
-        const da = a.date || '9999-99-99';
-        const db2 = b.date || '9999-99-99';
-        return da.localeCompare(db2);
+        // Outros: quadrante primeiro, depois por data prevista
+        const qa = getQuadrant(
+          a.urgente !== undefined ? a.urgente : a.prio === 'Alta',
+          a.importante !== undefined ? a.importante : a.prio !== 'Baixa'
+        ).order;
+        const qb = getQuadrant(
+          b.urgente !== undefined ? b.urgente : b.prio === 'Alta',
+          b.importante !== undefined ? b.importante : b.prio !== 'Baixa'
+        ).order;
+        if (qa !== qb) return qa - qb;
+        return (a.date || '9999-99-99').localeCompare(b.date || '9999-99-99');
       });
     html += `
     <div class="kanban-col ${activeColFilter && activeColFilter !== col.name ? 'col-dimmed' : ''}" data-col="${esc(col.name)}">
