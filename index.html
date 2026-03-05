@@ -1220,6 +1220,29 @@ header { background: var(--header-color) !important; transition: background .3s 
   display:flex; align-items:center; gap:6px;
 }
 
+
+/* ── RÁPIDO BADGE ── */
+.rapido-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 99px;
+  font-size: 10px; font-weight: 700;
+  background: #DBEAFE; color: #1E40AF;
+  border: 1px solid #BFDBFE;
+}
+[data-dark] .rapido-badge { background:#1E3A5F; color:#93C5FD; border-color:#1E40AF; }
+
+/* Rápido toggle in modal */
+.rapido-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: var(--r8);
+  border: 2px solid var(--border); background: var(--surface);
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  user-select: none; transition: all .15s;
+}
+.rapido-toggle input { display: none; }
+.rapido-toggle.checked { border-color: #3B82F6; background: #DBEAFE; color: #1E40AF; }
+[data-dark] .rapido-toggle.checked { background: #1E3A5F; color: #93C5FD; }
+
 </style>
 </head>
 <body>
@@ -1466,6 +1489,13 @@ header { background: var(--header-color) !important; transition: background .3s 
         <div class="fg">
           <label>Responsável</label>
           <input type="text" id="t-responsavel" placeholder="Quem vai executar...">
+        </div>
+        <div class="fg">
+          <label>Execução rápida?</label>
+          <label class="rapido-toggle" id="t-rapido-toggle">
+            <input type="checkbox" id="t-rapido" onchange="document.getElementById('t-rapido-toggle').classList.toggle('checked', this.checked)">
+            ⚡ Tarefa rápida (menos de 5 min)
+          </label>
         </div>
       </div>
       <div class="fg-row" id="t-dates-row" style="display:flex;gap:12px">
@@ -1871,7 +1901,9 @@ function buildBoard() {
         if (col.name === 'Concluído') {
           return (b.completedAt || '0').localeCompare(a.completedAt || '0');
         }
-        // Outros: quadrante primeiro, depois por data prevista
+        // Rápido sobe primeiro
+        if (a.rapido !== b.rapido) return a.rapido ? -1 : 1;
+        // Depois por quadrante
         const qa = getQuadrant(
           a.urgente !== undefined ? a.urgente : a.prio === 'Alta',
           a.importante !== undefined ? a.importante : a.prio !== 'Baixa'
@@ -1962,6 +1994,7 @@ function taskCardHTML(t, today) {
       ${t.area ? `<span class="tag tag-area">${esc(t.area)}</span>` : ''}
     </div>
     <div class="card-footer">
+      ${t.rapido ? '<span class="rapido-badge">⚡ Rápido</span>' : ''}
       ${t.responsavel ? `<span class="card-date" style="color:var(--t3)">👤 ${t.responsavel}</span>` : ''}
       ${t.date ? `<span class="card-date ${vencida&&!t.completedAt?'overdue':isToday&&!t.completedAt?'today':''}">📅 ${dateStr}${vencida&&!t.completedAt?' ⚠':isToday&&!t.completedAt?' •':''}</span>` : ''}
       ${t.completedAt ? (() => { const [y,m,d]=t.completedAt.split('-'); return `<span class="card-date" style="color:var(--g);margin-left:4px">✅ ${d}/${m}/${y}</span>`; })() : ''}
@@ -2057,6 +2090,9 @@ function openTaskModal(taskId = '', defaultStatus = '') {
   document.getElementById('t-date').value  = task?.date  || '';
   document.getElementById('t-area').value        = task?.area        || '';
   document.getElementById('t-responsavel').value = task?.responsavel || '';
+  const _rapido = task?.rapido || false;
+  document.getElementById('t-rapido').checked = _rapido;
+  document.getElementById('t-rapido-toggle').classList.toggle('checked', _rapido);
 
   // createdAt field
   const _rawCr = task?.createdAt;
@@ -2183,6 +2219,7 @@ async function saveTask() {
     date:   document.getElementById('t-date').value,
     area:        document.getElementById('t-area').value.trim(),
     responsavel: document.getElementById('t-responsavel')?.value.trim() || '',
+    rapido:      document.getElementById('t-rapido')?.checked || false,
     subtasks: modalSubs,
     completedAt,
     createdAt,
