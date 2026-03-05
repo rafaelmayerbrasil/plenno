@@ -1184,6 +1184,42 @@ header { background: var(--header-color) !important; transition: background .3s 
   .board-arrow { display: none !important; }
 }
 
+
+/* ── QUADRANT BADGES ── */
+.q-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 99px;
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+}
+.q-faca-ja      { background:#FEE2E2; color:#991B1B; }
+.q-decida       { background:#FEF3C7; color:#92400E; }
+.q-delegue      { background:#FED7AA; color:#9A3412; }
+.q-mais-tarde   { background:#DCFCE7; color:#166534; }
+[data-dark] .q-faca-ja    { background:#3B0F0F; color:#FCA5A5; }
+[data-dark] .q-decida     { background:#2D1F00; color:#FCD34D; }
+[data-dark] .q-delegue    { background:#2D1400; color:#FDBA74; }
+[data-dark] .q-mais-tarde { background:#0D2A1A; color:#6EE7A0; }
+
+/* Urgente/Importante toggles */
+.ei-row { display:flex; gap:10px; flex-wrap:wrap; }
+.ei-toggle {
+  display:flex; align-items:center; gap:6px;
+  padding: 6px 12px; border-radius: var(--r8);
+  border: 2px solid var(--border); background: var(--surface);
+  cursor:pointer; font-size:13px; font-weight:600;
+  user-select:none; transition: all .15s;
+}
+.ei-toggle input { display:none; }
+.ei-toggle.checked-urgente  { border-color:#EF4444; background:#FEE2E2; color:#991B1B; }
+.ei-toggle.checked-importante { border-color:#F59E0B; background:#FEF3C7; color:#92400E; }
+[data-dark] .ei-toggle.checked-urgente    { background:#3B0F0F; color:#FCA5A5; }
+[data-dark] .ei-toggle.checked-importante { background:#2D1F00; color:#FCD34D; }
+.q-preview {
+  padding: 8px 14px; border-radius: var(--r8);
+  font-size: 12px; font-weight: 700;
+  display:flex; align-items:center; gap:6px;
+}
+
 </style>
 </head>
 <body>
@@ -1279,9 +1315,10 @@ header { background: var(--header-color) !important; transition: background .3s 
     <button class="filter-chip" data-filter="today">Hoje</button>
     <select class="filter-select" id="filter-prio">
       <option value="">Prioridade</option>
-      <option value="Alta">Alta</option>
-      <option value="Média">Média</option>
-      <option value="Baixa">Baixa</option>
+      <option value="faca-ja">🔴 Faça imediatamente</option>
+      <option value="decida">🟡 Decida quando fazer</option>
+      <option value="delegue">🟠 Delegue</option>
+      <option value="mais-tarde">🟢 Faça mais tarde</option>
     </select>
     <select class="filter-select" id="filter-area">
       <option value="">Área</option>
@@ -1319,9 +1356,10 @@ header { background: var(--header-color) !important; transition: background .3s 
       <button class="filter-chip" data-ch-filter="Resolvido" onclick="setChamadoFilter('Resolvido',this)">Resolvidos</button>
       <select class="filter-select" id="chamados-filter-prio" onchange="renderChamados()">
         <option value="">Prioridade</option>
-        <option value="Alta">Alta</option>
-        <option value="Média">Média</option>
-        <option value="Baixa">Baixa</option>
+        <option value="faca-ja">🔴 Faça imediatamente</option>
+        <option value="decida">🟡 Decida quando fazer</option>
+        <option value="delegue">🟠 Delegue</option>
+        <option value="mais-tarde">🟢 Faça mais tarde</option>
       </select>
       <input type="text" class="filter-select" id="chamados-search" style="min-width:160px"
         placeholder="🔍 Buscar..." oninput="renderChamados()">
@@ -1403,11 +1441,17 @@ header { background: var(--header-color) !important; transition: background .3s 
         </div>
         <div class="fg">
           <label>Prioridade</label>
-          <select id="t-prio">
-            <option value="Média">Média</option>
-            <option value="Alta">Alta</option>
-            <option value="Baixa">Baixa</option>
-          </select>
+          <div class="ei-row">
+            <label class="ei-toggle" id="t-toggle-urgente">
+              <input type="checkbox" id="t-urgente" onchange="updateEiPreview('t')">
+              ⚡ Urgente
+            </label>
+            <label class="ei-toggle" id="t-toggle-importante">
+              <input type="checkbox" id="t-importante" onchange="updateEiPreview('t')">
+              ⭐ Importante
+            </label>
+          </div>
+          <div id="t-q-preview" class="q-preview q-mais-tarde" style="margin-top:6px">🟢 Faça mais tarde</div>
         </div>
       </div>
       <div class="fg-row">
@@ -1418,6 +1462,10 @@ header { background: var(--header-color) !important; transition: background .3s 
         <div class="fg">
           <label>Área / Projeto</label>
           <input type="text" id="t-area" placeholder="SAP, Automação, Follow Up...">
+        </div>
+        <div class="fg">
+          <label>Responsável</label>
+          <input type="text" id="t-responsavel" placeholder="Quem vai executar...">
         </div>
       </div>
       <div class="fg-row" id="t-dates-row" style="display:flex;gap:12px">
@@ -1569,11 +1617,17 @@ header { background: var(--header-color) !important; transition: background .3s 
         </div>
         <div class="fg">
           <label>Prioridade</label>
-          <select id="ch-prio">
-            <option value="Média">Média</option>
-            <option value="Alta">Alta</option>
-            <option value="Baixa">Baixa</option>
-          </select>
+          <div class="ei-row">
+            <label class="ei-toggle" id="ch-toggle-urgente">
+              <input type="checkbox" id="ch-urgente" onchange="updateEiPreview('ch')">
+              ⚡ Urgente
+            </label>
+            <label class="ei-toggle" id="ch-toggle-importante">
+              <input type="checkbox" id="ch-importante" onchange="updateEiPreview('ch')">
+              ⭐ Importante
+            </label>
+          </div>
+          <div id="ch-q-preview" class="q-preview q-mais-tarde" style="margin-top:6px">🟢 Faça mais tarde</div>
         </div>
       </div>
       <div class="fg">
@@ -1791,7 +1845,11 @@ function getFilteredTasks() {
     if (filterState.mode === 'mine'    && t.ownerId !== currentUser.uid) return false;
     if (filterState.mode === 'overdue' && (!t.date || t.date >= today)) return false;
     if (filterState.mode === 'today'   && t.date !== today) return false;
-    if (filterState.prio && t.prio !== filterState.prio) return false;
+    if (filterState.prio) {
+      const _u = t.urgente !== undefined ? t.urgente : (t.prio==='Alta');
+      const _i = t.importante !== undefined ? t.importante : (t.prio!=='Baixa');
+      if (getQuadrant(_u, _i).key !== filterState.prio) return false;
+    }
     if (filterState.area && t.area !== filterState.area) return false;
     if (search && !((t.title||'').toLowerCase().includes(search) ||
                     (t.desc||'').toLowerCase().includes(search)  ||
@@ -1890,10 +1948,16 @@ function taskCardHTML(t, today) {
     </div>
     ${t.desc ? `<div class="card-desc">${esc(t.desc)}</div>` : ''}
     <div class="card-tags">
-      ${t.prio ? `<span class="tag tag-prio-${esc(t.prio)}">${esc(t.prio)}</span>` : ''}
+      ${(() => {
+        const u = t.urgente !== undefined ? t.urgente : (t.prio==='Alta');
+        const i = t.importante !== undefined ? t.importante : (t.prio!=='Baixa');
+        const q = getQuadrant(u, i);
+        return `<span class="q-badge q-${q.key}" title="${q.label}">${q.icon} ${q.label}</span>`;
+      })()}
       ${t.area ? `<span class="tag tag-area">${esc(t.area)}</span>` : ''}
     </div>
     <div class="card-footer">
+      ${t.responsavel ? `<span class="card-date" style="color:var(--t3)">👤 ${t.responsavel}</span>` : ''}
       ${t.date ? `<span class="card-date ${vencida&&!t.completedAt?'overdue':isToday&&!t.completedAt?'today':''}">📅 ${dateStr}${vencida&&!t.completedAt?' ⚠':isToday&&!t.completedAt?' •':''}</span>` : ''}
       ${t.completedAt ? (() => { const [y,m,d]=t.completedAt.split('-'); return `<span class="card-date" style="color:var(--g);margin-left:4px">✅ ${d}/${m}/${y}</span>`; })() : ''}
       <div class="card-meta">
@@ -1986,7 +2050,8 @@ function openTaskModal(taskId = '', defaultStatus = '') {
   document.getElementById('t-title').value = task?.title || '';
   document.getElementById('t-desc').value  = task?.desc  || '';
   document.getElementById('t-date').value  = task?.date  || '';
-  document.getElementById('t-area').value  = task?.area  || '';
+  document.getElementById('t-area').value        = task?.area        || '';
+  document.getElementById('t-responsavel').value = task?.responsavel || '';
 
   // createdAt field
   const _rawCr = task?.createdAt;
@@ -2010,7 +2075,13 @@ function openTaskModal(taskId = '', defaultStatus = '') {
     `<option value="${esc(c.name)}" ${(task?.status||defaultStatus||columns[0]?.name)===c.name?'selected':''}>${esc(c.name)}</option>`
   ).join('');
 
-  document.getElementById('t-prio').value = task?.prio || 'Média';
+  // Populate Eisenhower toggles (support legacy prio field)
+  const _ei = task?.urgente !== undefined
+    ? { urgente: task.urgente, importante: task.importante }
+    : quadrantFromLegacy(task?.prio || 'Baixa');
+  document.getElementById('t-urgente').checked    = _ei.urgente;
+  document.getElementById('t-importante').checked = _ei.importante;
+  updateEiPreview('t');
 
   // Subtasks
   modalSubs = task?.subtasks ? task.subtasks.map(s=>({...s})) : [];
@@ -2095,9 +2166,18 @@ async function saveTask() {
   const data = {
     title, desc:  document.getElementById('t-desc').value.trim(),
     status: newStatus,
-    prio:   document.getElementById('t-prio').value,
+    urgente:    document.getElementById('t-urgente')?.checked || false,
+    importante: document.getElementById('t-importante')?.checked || false,
+    prio: (() => { // keep legacy for filter compat
+      const u = document.getElementById('t-urgente')?.checked;
+      const i = document.getElementById('t-importante')?.checked;
+      if (u && i) return 'Alta';
+      if (i) return 'Média';
+      return 'Baixa';
+    })(),
     date:   document.getElementById('t-date').value,
-    area:   document.getElementById('t-area').value.trim(),
+    area:        document.getElementById('t-area').value.trim(),
+    responsavel: document.getElementById('t-responsavel')?.value.trim() || '',
     subtasks: modalSubs,
     completedAt,
     createdAt,
@@ -2438,6 +2518,37 @@ function requestNotifPermission() {
   }
 }
 
+
+// ── EISENHOWER MATRIX ──────────────────────────────────
+function getQuadrant(urgente, importante) {
+  if (urgente && importante)  return { key:'faca-ja',    label:'Faça imediatamente', icon:'🔴', order:1 };
+  if (!urgente && importante) return { key:'decida',     label:'Decida quando fazer', icon:'🟡', order:2 };
+  if (urgente && !importante) return { key:'delegue',    label:'Delegue',             icon:'🟠', order:3 };
+  return                             { key:'mais-tarde', label:'Faça mais tarde',     icon:'🟢', order:4 };
+}
+
+function quadrantFromLegacy(prio) {
+  if (prio === 'Alta')  return { urgente:true,  importante:true  };
+  if (prio === 'Média') return { urgente:false, importante:true  };
+  return                       { urgente:false, importante:false };
+}
+
+function updateEiPreview(prefix) {
+  const u = document.getElementById(prefix+'-urgente')?.checked || false;
+  const i = document.getElementById(prefix+'-importante')?.checked || false;
+  const q = getQuadrant(u, i);
+  const prev = document.getElementById(prefix+'-q-preview');
+  if (prev) {
+    prev.className = 'q-preview q-'+q.key;
+    prev.innerHTML = q.icon+' '+q.label;
+  }
+  // update toggle styles
+  const tu = document.getElementById(prefix+'-toggle-urgente');
+  const ti = document.getElementById(prefix+'-toggle-importante');
+  if (tu) tu.classList.toggle('checked-urgente',   u);
+  if (ti) ti.classList.toggle('checked-importante', i);
+}
+
 // ── FILTERS ────────────────────────────────────────────
 document.querySelectorAll('.filter-chip[data-filter]').forEach(chip => {
   chip.onclick = function() {
@@ -2691,19 +2802,28 @@ function renderChamados() {
 
   let filtered = allChamados.filter(c => {
     if (status !== 'all' && c.status !== status) return false;
-    if (prio && c.prio !== prio) return false;
+    if (prio) {
+      const _cu = c.urgente !== undefined ? c.urgente : (c.prio==='Alta');
+      const _ci = c.importante !== undefined ? c.importante : (c.prio!=='Baixa');
+      if (getQuadrant(_cu, _ci).key !== prio) return false;
+    }
     if (search && !((c.titulo||'').toLowerCase().includes(search) ||
                     (c.proto||'').toLowerCase().includes(search)  ||
                     (c.sistema||'').toLowerCase().includes(search))) return false;
     return true;
   });
 
-  // Sort: não-resolvidos por prazo (vencidos primeiro, sem prazo por último), depois resolvidos por prazo
+  // Sort: quadrant priority → prazo, resolvidos por último
   const far = '9999-99-99';
   filtered.sort((a, b) => {
     const aResolvido = a.status === 'Resolvido' ? 1 : 0;
     const bResolvido = b.status === 'Resolvido' ? 1 : 0;
     if (aResolvido !== bResolvido) return aResolvido - bResolvido;
+    const qa = getQuadrant(a.urgente !== undefined ? a.urgente : a.prio==='Alta',
+                           a.importante !== undefined ? a.importante : a.prio!=='Baixa').order;
+    const qb = getQuadrant(b.urgente !== undefined ? b.urgente : b.prio==='Alta',
+                           b.importante !== undefined ? b.importante : b.prio!=='Baixa').order;
+    if (qa !== qb) return qa - qb;
     return (a.prazo || far).localeCompare(b.prazo || far);
   });
 
@@ -2738,7 +2858,12 @@ function renderChamados() {
         })() : ''}
         ${c.prazo ? `<span style="${vencido&&!c.completedAt?'color:var(--red);font-weight:700':''}">📅 ${prazoStr}${vencido&&!c.completedAt?' ⚠':''}</span>` : ''}
         ${c.completedAt ? (() => { const [y,m,d]=c.completedAt.split('-'); return `<span style="color:var(--g);font-weight:600">✅ ${d}/${m}/${y}</span>`; })() : ''}
-        ${c.prio        ? `<span>🔺 ${esc(c.prio)}</span>` : ''}
+        ${(() => {
+          const u = c.urgente !== undefined ? c.urgente : (c.prio==='Alta');
+          const i = c.importante !== undefined ? c.importante : (c.prio!=='Baixa');
+          const q = getQuadrant(u, i);
+          return `<span class="q-badge q-${q.key}" title="${q.label}">${q.icon} ${q.label}</span>`;
+        })()}
       </div>
     </div>`;
   }).join('');
@@ -2807,7 +2932,15 @@ async function saveChamado() {
     prazo:       document.getElementById('ch-prazo').value,
     obs:         document.getElementById('ch-obs').value.trim(),
     status:      chStatus,
-    prio:        document.getElementById('ch-prio').value,
+    urgente:    document.getElementById('ch-urgente')?.checked || false,
+    importante: document.getElementById('ch-importante')?.checked || false,
+    prio: (() => {
+      const u = document.getElementById('ch-urgente')?.checked;
+      const i = document.getElementById('ch-importante')?.checked;
+      if (u && i) return 'Alta';
+      if (i) return 'Média';
+      return 'Baixa';
+    })(),
     completedAt: chCompletedAt,
     createdAt:   chCreatedAt,
   };
