@@ -1857,12 +1857,22 @@ async function loadTasks() {
   buildAreaFilter();
 }
 
-// Real-time listener
+// Real-time listener — debounced to avoid double-firing from two queries
+let _taskReloadTimer = null;
+function _scheduleTaskReload() {
+  clearTimeout(_taskReloadTimer);
+  _taskReloadTimer = setTimeout(async () => {
+    await loadTasks();
+    buildBoard();
+    buildNotifications();
+  }, 150);
+}
+
 function startTasksListener() {
   db.collection('tasks').where('ownerId', '==', currentUser.uid)
-    .onSnapshot(async () => { await loadTasks(); buildBoard(); buildNotifications(); });
+    .onSnapshot(_scheduleTaskReload);
   db.collection('tasks').where('sharedWith', 'array-contains', currentUser.uid)
-    .onSnapshot(async () => { await loadTasks(); buildBoard(); buildNotifications(); });
+    .onSnapshot(_scheduleTaskReload);
 }
 
 // ── BOARD ──────────────────────────────────────────────
