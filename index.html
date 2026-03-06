@@ -1843,13 +1843,11 @@ async function saveColumns() {
 async function loadTasks() {
   // own tasks
   const ownSnap = await db.collection('tasks')
-    .where('ownerId', '==', currentUser.uid)
-    .orderBy('createdAt', 'desc').get();
+    .where('ownerId', '==', currentUser.uid).get();
 
   // tasks shared with me
   const sharedSnap = await db.collection('tasks')
-    .where('sharedWith', 'array-contains', currentUser.uid)
-    .orderBy('createdAt', 'desc').get();
+    .where('sharedWith', 'array-contains', currentUser.uid).get();
 
   const map = {};
   ownSnap.forEach(d => map[d.id] = { id: d.id, ...d.data() });
@@ -1901,8 +1899,9 @@ function buildBoard() {
         if (col.name === 'Concluído') {
           return (b.completedAt || '0').localeCompare(a.completedAt || '0');
         }
-        // Rápido sobe primeiro
-        if (a.rapido !== b.rapido) return a.rapido ? -1 : 1;
+        // Rápido sobe primeiro (normalize undefined → false)
+        const ar = !!a.rapido, br = !!b.rapido;
+        if (ar !== br) return ar ? -1 : 1;
         // Depois por quadrante
         const qa = getQuadrant(
           a.urgente !== undefined ? a.urgente : a.prio === 'Alta',
