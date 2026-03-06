@@ -2239,17 +2239,16 @@ async function saveTask() {
       const idx = allTasks.findIndex(t=>t.id===editingTaskId);
       if (idx>=0) allTasks[idx] = {...allTasks[idx],...data};
       toast('✏️ Tarefa atualizada!');
+      buildBoard(); // update immediately for edits
     } else {
-      const ref = await db.collection('tasks').add({
+      await db.collection('tasks').add({
         ...data, ownerId: currentUser.uid,
         sharedWith: [], commentCount: 0
-        // createdAt already in data
       });
-      allTasks.unshift({ id:ref.id, ...data, ownerId:currentUser.uid, sharedWith:[], commentCount:0 });
       toast('✅ Tarefa criada!');
+      // snapshot will reload allTasks and call buildBoard automatically
     }
     closeTaskModal();
-    buildBoard();
     buildAreaFilter();
     buildNotifications();
     // If promoted from rascunho, delete it
