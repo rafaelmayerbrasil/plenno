@@ -885,77 +885,7 @@ header {
 }
 
 /* ── CHAMADOS SECTION ── */
-#chamados-section {
-  display: none; flex: 1; padding: 20px;
-  flex-direction: column; gap: 16px;
-  justify-content: flex-start;
-  align-items: stretch;
-  overflow-y: auto;
-  min-height: 0;
-}
-#chamados-section.show { display: flex; }
 
-.chamados-toolbar {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-}
-.chamados-search {
-  flex: 1; min-width: 200px;
-  padding: 9px 14px; border-radius: var(--r8);
-  border: 2px solid var(--border); background: var(--surface);
-  color: var(--t1); font-size: 13px; font-family: inherit;
-  outline: none; transition: border-color .15s;
-}
-.chamados-search:focus { border-color: var(--g); }
-
-.chamado-list { display: flex; flex-direction: column; gap: 10px; }
-
-.chamado-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r16); padding: 16px 20px;
-  cursor: pointer; transition: box-shadow .2s, border-color .15s;
-  animation: cardIn .2s ease;
-  border-left: 4px solid transparent;
-}
-.chamado-card:hover { box-shadow: var(--shadow); border-color: var(--border2); }
-.chamado-card.status-Aberto         { border-left-color: var(--red); }
-.chamado-card.status-Em-atendimento { border-left-color: var(--yellow); }
-.chamado-card.status-Aguardando     { border-left-color: var(--purple); }
-.chamado-card.status-Resolvido      { border-left-color: var(--g); }
-
-.chamado-top {
-  display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px;
-}
-.chamado-proto {
-  font-size: 11px; font-weight: 700; color: var(--t4);
-  font-family: 'DM Mono', monospace; background: var(--bg);
-  padding: 3px 8px; border-radius: var(--r4); white-space: nowrap;
-}
-.chamado-title { flex: 1; font-size: 14px; font-weight: 700; color: var(--t1); }
-.chamado-status-badge {
-  padding: 3px 10px; border-radius: 99px;
-  font-size: 11px; font-weight: 700; white-space: nowrap;
-}
-.badge-Aberto         { background: #FEE2E2; color: #991B1B; }
-.badge-Em-atendimento { background: #FEF3C7; color: #92400E; }
-.badge-Aguardando     { background: #EDE9FE; color: #5B21B6; }
-.badge-Resolvido      { background: var(--gl); color: var(--gd); }
-[data-dark] .badge-Aberto         { background: #3B0F0F; color: #FCA5A5; }
-[data-dark] .badge-Em-atendimento { background: #2D1F00; color: #FCD34D; }
-[data-dark] .badge-Aguardando     { background: #1E1040; color: #C4B5FD; }
-[data-dark] .badge-Resolvido      { background: #0D2A1A; color: #6EE7A0; }
-
-.chamado-meta {
-  display: flex; gap: 16px; flex-wrap: wrap;
-  font-size: 12px; color: var(--t3);
-}
-.chamado-meta span { display: flex; align-items: center; gap: 4px; }
-
-/* chamado empty */
-.chamados-empty {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; padding: 60px 20px; gap: 10px; color: var(--t4);
-}
-.chamados-empty-icon { font-size: 48px; }
 
 /* ── RASCUNHOS SECTION ── */
 #rascunhos-section {
@@ -1039,27 +969,26 @@ header {
   --header-color: #007A3D;
 }
 [data-section="tarefas"]  { --header-color: #007A3D; }
-[data-section="chamados"] { --header-color: #1D4ED8; }
+
 [data-section="rascunhos"]{ --header-color: #6D28D9; }
 
 header { background: var(--header-color) !important; transition: background .3s !important; }
 .h-btn-icon { transition: background .15s, border-color .15s !important; }
 .plenno-footer { background: var(--header-color) !important; transition: background .3s !important; }
 
-[data-section="chamados"] .main-nav .nav-tab.active { color: #3B82F6; border-bottom-color: #3B82F6; }
+
 [data-section="rascunhos"] .main-nav .nav-tab.active { color: #8B5CF6; border-bottom-color: #8B5CF6; }
 
-[data-section="chamados"]  .filter-chip.on { background: #2563EB; border-color: #2563EB; }
+
 [data-section="rascunhos"] .filter-chip.on { background: #7C3AED; border-color: #7C3AED; }
-[data-section="chamados"]  .btn-primary { background: #2563EB; }
-[data-section="chamados"]  .btn-primary:hover { background: #1D4ED8; }
+
+
 [data-section="rascunhos"] .btn-primary { background: #7C3AED; }
 [data-section="rascunhos"] .btn-primary:hover { background: #6D28D9; }
 
 
 /* ── CHAMADOS MOBILE ── */
 @media (max-width: 768px) {
-  #chamados-section,
   #rascunhos-section {
     padding: 10px 12px 48px;
   }
@@ -1243,6 +1172,17 @@ header { background: var(--header-color) !important; transition: background .3s 
 .rapido-toggle.checked { border-color: #3B82F6; background: #DBEAFE; color: #1E40AF; }
 [data-dark] .rapido-toggle.checked { background: #1E3A5F; color: #93C5FD; }
 
+
+/* ── CHAMADO TI BADGE ON CARD ── */
+.chamado-ti-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 99px;
+  font-size: 10px; font-weight: 700;
+  background: #EDE9FE; color: #5B21B6;
+  border: 1px solid #DDD6FE;
+}
+[data-dark] .chamado-ti-badge { background:#1E1040; color:#C4B5FD; border-color:#4C1D95; }
+
 </style>
 </head>
 <body>
@@ -1298,9 +1238,7 @@ header { background: var(--header-color) !important; transition: background .3s 
     <button class="nav-tab active" data-section="tarefas" onclick="switchSection('tarefas')">
       📋 Tarefas
     </button>
-    <button class="nav-tab" data-section="chamados" onclick="switchSection('chamados')">
-      🎫 Chamados TI <span class="nav-tab-badge" id="chamados-badge" style="display:none"></span>
-    </button>
+
     <button class="nav-tab" data-section="rascunhos" onclick="switchSection('rascunhos')">
       📝 Rascunhos <span class="nav-tab-badge" id="rascunhos-badge" style="display:none"></span>
     </button>
@@ -1350,6 +1288,7 @@ header { background: var(--header-color) !important; transition: background .3s 
     <input type="text" id="task-search" class="filter-select" style="min-width:180px;max-width:220px"
       placeholder="🔍 Buscar tarefa..." oninput="buildBoard()">
     <div id="stat-summary" style="display:flex;gap:8px;align-items:center"></div>
+    <button class="btn btn-ghost btn-sm" onclick="exportTasks()" title="Exportar relatório" style="padding:6px 10px">📊</button>
     <button class="btn btn-primary btn-sm" id="btn-new-task" onclick="openTaskModal()">＋ Nova Tarefa</button>
   </div>
 
@@ -1369,321 +1308,6 @@ header { background: var(--header-color) !important; transition: background .3s 
 
 
   <!-- ═══════════ CHAMADOS SECTION ═══════════ -->
-  <div id="chamados-section">
-    <div class="filter-bar show" id="chamados-filter-bar" style="position:static;border-radius:var(--r8)">
-      <span class="filter-label">Filtrar:</span>
-      <button class="filter-chip on" data-ch-filter="all" onclick="setChamadoFilter('all',this)">Todos</button>
-      <button class="filter-chip" data-ch-filter="Aberto" onclick="setChamadoFilter('Aberto',this)">Abertos</button>
-      <button class="filter-chip" data-ch-filter="Em atendimento" onclick="setChamadoFilter('Em atendimento',this)">Em atendimento</button>
-      <button class="filter-chip" data-ch-filter="Aguardando" onclick="setChamadoFilter('Aguardando',this)">Aguardando</button>
-      <button class="filter-chip" data-ch-filter="Resolvido" onclick="setChamadoFilter('Resolvido',this)">Resolvidos</button>
-      <select class="filter-select" id="chamados-filter-prio" onchange="renderChamados()">
-        <option value="">Prioridade</option>
-        <option value="faca-ja">🔴 Faça imediatamente</option>
-        <option value="decida">🟡 Decida quando fazer</option>
-        <option value="delegue">🟠 Delegue</option>
-        <option value="mais-tarde">🟢 Faça mais tarde</option>
-      </select>
-      <input type="text" class="filter-select" id="chamados-search" style="min-width:160px"
-        placeholder="🔍 Buscar..." oninput="renderChamados()">
-      <div style="flex:1"></div>
-      <button class="btn btn-primary btn-sm" onclick="openChamadoModal()">＋ Novo Chamado</button>
-    </div>
-    <div class="chamado-list" id="chamado-list"></div>
-  </div>
-
-  <!-- ═══════════ RASCUNHOS SECTION ═══════════ -->
-  <div id="rascunhos-section">
-    <div class="rascunho-quick-input">
-      <textarea class="rascunho-inp" id="rascunho-inp"
-        placeholder="💭 Anote rapidamente aqui... (Enter para salvar, Shift+Enter para nova linha)"
-        onkeydown="handleRascunhoKey(event)"></textarea>
-      <div class="rascunho-inp-footer">
-        <button class="btn btn-ghost btn-sm" onclick="clearRascunhoInp()">Limpar</button>
-        <button class="btn btn-primary btn-sm" onclick="saveRascunho()">Salvar nota</button>
-      </div>
-    </div>
-    <div class="rascunho-list" id="rascunho-list"></div>
-  </div>
-
-</div><!-- #app -->
-
-<!-- ═══════════════════════════════════════
-     NOTIFICATIONS PANEL
-═══════════════════════════════════════ -->
-<div id="notif-panel">
-  <div class="notif-head">
-    <h3>🔔 Notificações</h3>
-    <button class="modal-close" id="btn-close-notif">✕</button>
-  </div>
-  <div class="notif-list" id="notif-list">
-    <div class="notif-empty">Nenhuma notificação</div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════
-     USER MENU
-═══════════════════════════════════════ -->
-<div id="user-menu">
-  <div class="user-menu-info">
-    <img src="" alt="" id="um-avatar">
-    <div>
-      <p id="um-name"></p>
-      <span id="um-email"></span>
-    </div>
-  </div>
-  <div class="user-menu-item" id="um-settings">⚙️ Configurações</div>
-  <div class="user-menu-item danger" id="um-logout">🚪 Sair</div>
-</div>
-
-<!-- ═══════════════════════════════════════
-     MODAL: TASK
-═══════════════════════════════════════ -->
-<div class="overlay" id="task-overlay">
-  <div class="modal modal-lg">
-    <div class="modal-head">
-      <div>
-        <div class="modal-title" id="task-modal-title">Nova Tarefa</div>
-        <div class="modal-subtitle" id="task-modal-sub"></div>
-      </div>
-      <button class="modal-close" onclick="closeTaskModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="fg">
-        <label>Título *</label>
-        <input type="text" id="t-title" placeholder="Ex: Verificar proposta do fornecedor X" maxlength="150">
-      </div>
-      <div class="fg">
-        <label>Descrição</label>
-        <textarea id="t-desc" placeholder="Contexto, links, observações..."></textarea>
-      </div>
-      <div class="fg-row">
-        <div class="fg">
-          <label>Status</label>
-          <select id="t-status"></select>
-        </div>
-        <div class="fg">
-          <label>Prioridade</label>
-          <div class="ei-row">
-            <label class="ei-toggle" id="t-toggle-urgente">
-              <input type="checkbox" id="t-urgente" onchange="updateEiPreview('t')">
-              ⚡ Urgente
-            </label>
-            <label class="ei-toggle" id="t-toggle-importante">
-              <input type="checkbox" id="t-importante" onchange="updateEiPreview('t')">
-              ⭐ Importante
-            </label>
-          </div>
-          <div id="t-q-preview" class="q-preview q-mais-tarde" style="margin-top:6px">🟢 Faça mais tarde</div>
-        </div>
-      </div>
-      <div class="fg-row">
-        <div class="fg">
-          <label>Data Prevista</label>
-          <input type="date" id="t-date">
-        </div>
-        <div class="fg">
-          <label>Área / Projeto</label>
-          <input type="text" id="t-area" placeholder="SAP, Automação, Follow Up...">
-        </div>
-        <div class="fg">
-          <label>Responsável</label>
-          <input type="text" id="t-responsavel" placeholder="Quem vai executar...">
-        </div>
-        <div class="fg">
-          <label>Execução rápida?</label>
-          <label class="rapido-toggle" id="t-rapido-toggle">
-            <input type="checkbox" id="t-rapido" onchange="document.getElementById('t-rapido-toggle').classList.toggle('checked', this.checked)">
-            ⚡ Tarefa rápida (menos de 5 min)
-          </label>
-        </div>
-      </div>
-      <div class="fg-row" id="t-dates-row" style="display:flex;gap:12px">
-        <div class="fg">
-          <label>📅 Criação</label>
-          <input type="date" id="t-created-at" readonly style="background:var(--bg);border-color:var(--border);color:var(--t3);cursor:default;font-size:12px">
-        </div>
-        <div class="fg" id="t-completed-wrap" style="display:none">
-          <label>✅ Conclusão</label>
-          <input type="date" id="t-completed-at" readonly style="background:var(--gl);border-color:var(--g);color:var(--gd);cursor:default;font-size:12px">
-        </div>
-      </div>
-
-      <!-- SUBTAREFAS -->
-      <div class="fg">
-        <label>Subtarefas <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--t4)">— opcional</span></label>
-        <div class="sub-prog-wrap" id="sub-prog-wrap" style="display:none">
-          <div class="sub-prog-fill" id="sub-prog-fill"></div>
-        </div>
-        <div class="sub-list" id="sub-list"></div>
-        <div class="sub-inp-row">
-          <input type="text" id="sub-inp" placeholder="Adicionar subtarefa..." maxlength="200"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();addSubModal();}">
-          <button class="btn-sub-add" onclick="addSubModal()">＋</button>
-        </div>
-      </div>
-
-      <!-- COMENTÁRIOS (só em tasks existentes) -->
-      <div class="comments-section" id="comments-section" style="display:none">
-        <div class="comments-title">💬 Histórico & Comentários</div>
-        <div class="comment-list" id="comment-list"></div>
-        <div class="comment-input-row">
-          <textarea id="comment-inp" placeholder="Adicionar comentário ou registro de atividade..." rows="2"></textarea>
-          <button class="btn btn-primary btn-sm" onclick="addComment()">Enviar</button>
-        </div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" id="btn-delete-task" style="display:none;color:var(--red)">🗑️ Excluir</button>
-      <button class="btn btn-ghost" id="btn-share-task" style="display:none">🔗 Compartilhar</button>
-      <div style="flex:1"></div>
-      <button class="btn btn-ghost" onclick="closeTaskModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveTask()">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════
-     MODAL: SETTINGS (Status Config)
-═══════════════════════════════════════ -->
-<div class="overlay" id="settings-overlay">
-  <div class="modal modal-sm">
-    <div class="modal-head">
-      <div>
-        <div class="modal-title">⚙️ Configurar Status</div>
-        <div class="modal-subtitle">Crie, edite e reordene as colunas do Plenno</div>
-      </div>
-      <button class="modal-close" onclick="closeSettings()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="status-list" id="settings-status-list"></div>
-      <button class="btn btn-ghost" style="width:100%" onclick="addStatusItem()">＋ Novo Status</button>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeSettings()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveSettings()">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════
-     MODAL: SHARE
-═══════════════════════════════════════ -->
-<div class="overlay" id="share-overlay">
-  <div class="modal modal-sm">
-    <div class="modal-head">
-      <div>
-        <div class="modal-title">🔗 Compartilhar Tarefa</div>
-        <div class="modal-subtitle">Envie o link para um colega colaborar</div>
-      </div>
-      <button class="modal-close" onclick="closeShare()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p style="font-size:13px;color:var(--t2);margin-bottom:12px;line-height:1.6">
-        Qualquer pessoa com este link e conta Google poderá ver e colaborar nesta tarefa. Ela aparecerá no Plenno dela.
-      </p>
-      <div class="share-link-box">
-        <input type="text" id="share-link-input" readonly>
-        <button class="btn btn-primary btn-sm" onclick="copyShareLink()">Copiar</button>
-      </div>
-      <div id="share-colabs-wrap" style="margin-top:20px;display:none">
-        <div style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Colaboradores</div>
-        <div class="share-invited-list" id="share-colabs-list"></div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeShare()">Fechar</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════
-     MODAL: CHAMADO
-═══════════════════════════════════════ -->
-<div class="overlay" id="chamado-overlay">
-  <div class="modal modal-lg">
-    <div class="modal-head">
-      <div>
-        <div class="modal-title" id="chamado-modal-title">Novo Chamado</div>
-        <div class="modal-subtitle">Acompanhamento de chamado com TI</div>
-      </div>
-      <button class="modal-close" onclick="closeChamadoModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="fg-row">
-        <div class="fg">
-          <label>Número / Protocolo</label>
-          <input type="text" id="ch-proto" placeholder="Ex: CHD-2024-001">
-        </div>
-        <div class="fg">
-          <label>Status</label>
-          <select id="ch-status">
-            <option value="Aberto">Aberto</option>
-            <option value="Em atendimento">Em atendimento</option>
-            <option value="Aguardando">Aguardando</option>
-            <option value="Resolvido">Resolvido</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg">
-        <label>Título / Descrição do problema *</label>
-        <input type="text" id="ch-titulo" placeholder="Ex: SAP não abre após atualização">
-      </div>
-      <div class="fg-row">
-        <div class="fg">
-          <label>Sistema / Área afetada</label>
-          <input type="text" id="ch-sistema" placeholder="Ex: SAP, Power Automate, VPN...">
-        </div>
-        <div class="fg">
-          <label>Responsável na TI</label>
-          <input type="text" id="ch-responsavel" placeholder="Nome do atendente">
-        </div>
-      </div>
-      <div class="fg-row">
-        <div class="fg">
-          <label>Data Prevista</label>
-          <input type="date" id="ch-prazo">
-        </div>
-        <div class="fg">
-          <label>Prioridade</label>
-          <div class="ei-row">
-            <label class="ei-toggle" id="ch-toggle-urgente">
-              <input type="checkbox" id="ch-urgente" onchange="updateEiPreview('ch')">
-              ⚡ Urgente
-            </label>
-            <label class="ei-toggle" id="ch-toggle-importante">
-              <input type="checkbox" id="ch-importante" onchange="updateEiPreview('ch')">
-              ⭐ Importante
-            </label>
-          </div>
-          <div id="ch-q-preview" class="q-preview q-mais-tarde" style="margin-top:6px">🟢 Faça mais tarde</div>
-        </div>
-      </div>
-      <div class="fg">
-        <label>Observações</label>
-        <textarea id="ch-obs" placeholder="Detalhes, links, contexto..."></textarea>
-      </div>
-
-      <!-- HISTÓRICO -->
-      <div class="comments-section" id="ch-hist-section" style="display:none">
-        <div class="comments-title">📋 Histórico de atualizações</div>
-        <div id="ch-hist-list" style="margin-bottom:14px"></div>
-        <div class="comment-input-row">
-          <textarea id="ch-hist-inp" placeholder="Registrar atualização..." rows="2"></textarea>
-          <button class="btn btn-primary btn-sm" onclick="addChamadoHist()">Registrar</button>
-        </div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" id="btn-delete-chamado" style="display:none;color:var(--red)" onclick="deleteChamado()">🗑️ Excluir</button>
-      <div style="flex:1"></div>
-      <button class="btn btn-ghost" onclick="closeChamadoModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveChamado()">Salvar</button>
-    </div>
-  </div>
-</div>
-
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toast-container"></div>
 
@@ -1857,6 +1481,57 @@ async function loadTasks() {
   buildAreaFilter();
 }
 
+
+// ── MIGRAÇÃO: Chamados TI → Tarefas ─────────────────────
+async function migrateChamadosToTasks() {
+  if (!currentUser) return;
+  try {
+    const snap = await db.collection('chamados')
+      .where('userId', '==', currentUser.uid).get();
+    if (snap.empty) return;
+
+    const statusMap = {
+      'Aberto':          'Pendente',
+      'Em atendimento':  'Em andamento',
+      'Aguardando':      'Aguardando retorno',
+      'Resolvido':       'Concluído',
+    };
+
+    const batch = db.batch();
+    snap.docs.forEach(doc => {
+      const c = doc.data();
+      const newRef = db.collection('tasks').doc();
+      const status = statusMap[c.status] || 'Pendente';
+      batch.set(newRef, {
+        title:       c.titulo || c.proto || 'Chamado TI migrado',
+        desc:        [c.obs, c.sistema ? 'Sistema: '+c.sistema : '', c.responsavel ? 'Responsavel: '+c.responsavel : ''].filter(Boolean).join(' | '),
+        status,
+        area:        c.sistema || '',
+        responsavel: c.responsavel || '',
+        date:        c.prazo || '',
+        urgente:     c.urgente !== undefined ? c.urgente : c.prio === 'Alta',
+        importante:  c.importante !== undefined ? c.importante : c.prio !== 'Baixa',
+        hasChamado:  true,
+        chamadoNum:  c.proto || '',
+        rapido:      false,
+        createdAt:   c.createdAt || new Date().toISOString().slice(0,10),
+        completedAt: c.completedAt || null,
+        ownerId:     currentUser.uid,
+        sharedWith:  [],
+        commentCount: 0,
+        _migratedFromChamado: true,
+      });
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+    console.log(`[Plenno] Migrated ${snap.size} chamados to tasks`);
+    toast(`🎫 ${snap.size} chamado(s) migrado(s) para Tarefas!`);
+  } catch(e) {
+    console.error('[Plenno] Migration error:', e);
+  }
+}
+
 // Real-time listener — debounced to avoid double-firing from two queries
 let _taskReloadTimer = null;
 function _scheduleTaskReload() {
@@ -1971,6 +1646,7 @@ function buildBoard() {
   if (!window._listenerStarted) {
     window._listenerStarted = true;
     startTasksListener();
+  migrateChamadosToTasks(); // one-time migration from old chamados collection
   }
 }
 
@@ -2004,6 +1680,7 @@ function taskCardHTML(t, today) {
     </div>
     <div class="card-footer">
       ${t.rapido ? '<span class="rapido-badge">⚡ Rápido</span>' : ''}
+      ${t.hasChamado ? `<span class="chamado-ti-badge">🎫 ${t.chamadoNum || 'Chamado TI'}</span>` : ''}
       ${t.responsavel ? `<span class="card-date" style="color:var(--t3)">👤 ${t.responsavel}</span>` : ''}
       ${t.date ? `<span class="card-date ${vencida&&!t.completedAt?'overdue':isToday&&!t.completedAt?'today':''}">📅 ${dateStr}${vencida&&!t.completedAt?' ⚠':isToday&&!t.completedAt?' •':''}</span>` : ''}
       ${t.completedAt ? (() => { const [y,m,d]=t.completedAt.split('-'); return `<span class="card-date" style="color:var(--g);margin-left:4px">✅ ${d}/${m}/${y}</span>`; })() : ''}
@@ -2099,6 +1776,16 @@ function openTaskModal(taskId = '', defaultStatus = '') {
   document.getElementById('t-date').value  = task?.date  || '';
   document.getElementById('t-area').value        = task?.area        || '';
   document.getElementById('t-responsavel').value = task?.responsavel || '';
+  const _hasCh = task?.hasChamado || false;
+  document.getElementById('t-has-chamado').checked = _hasCh;
+  document.getElementById('t-chamado-num').value   = task?.chamadoNum || '';
+  document.getElementById('t-chamado-num-wrap').style.display = _hasCh ? '' : 'none';
+  const _chTog = document.getElementById('t-chamado-toggle');
+  if (_chTog) {
+    _chTog.style.borderColor = _hasCh ? '#8B5CF6' : '';
+    _chTog.style.background  = _hasCh ? '#EDE9FE' : '';
+    _chTog.style.color       = _hasCh ? '#5B21B6' : '';
+  }
   const _rapido = task?.rapido || false;
   document.getElementById('t-rapido').checked = _rapido;
   document.getElementById('t-rapido-toggle').classList.toggle('checked', _rapido);
@@ -2227,8 +1914,10 @@ async function saveTask() {
     })(),
     date:   document.getElementById('t-date').value,
     area:        document.getElementById('t-area').value.trim(),
-    responsavel: document.getElementById('t-responsavel')?.value.trim() || '',
-    rapido:      document.getElementById('t-rapido')?.checked || false,
+    responsavel:  document.getElementById('t-responsavel')?.value.trim() || '',
+    rapido:       document.getElementById('t-rapido')?.checked || false,
+    hasChamado:   document.getElementById('t-has-chamado')?.checked || false,
+    chamadoNum:   document.getElementById('t-chamado-num')?.value.trim() || '',
     subtasks: modalSubs,
     completedAt,
     createdAt,
@@ -2583,6 +2272,16 @@ function quadrantFromLegacy(prio) {
   return                       { urgente:false, importante:false };
 }
 
+
+function toggleChamadoField() {
+  const checked = document.getElementById('t-has-chamado').checked;
+  document.getElementById('t-chamado-num-wrap').style.display = checked ? '' : 'none';
+  const tog = document.getElementById('t-chamado-toggle');
+  if (tog) tog.style.borderColor = checked ? '#8B5CF6' : '';
+  if (tog) tog.style.background  = checked ? '#EDE9FE' : '';
+  if (tog) tog.style.color       = checked ? '#5B21B6' : '';
+}
+
 function updateEiPreview(prefix) {
   const u = document.getElementById(prefix+'-urgente')?.checked || false;
   const i = document.getElementById(prefix+'-importante')?.checked || false;
@@ -2791,7 +2490,6 @@ function switchSection(section) {
   const statsBar     = document.getElementById('stats-bar');
   const filterBar    = document.getElementById('filter-bar');
   const mobileTabs   = document.getElementById('mobile-tabs');
-  const chamadosSec  = document.getElementById('chamados-section');
   const rascunhosSec = document.getElementById('rascunhos-section');
 
   const boardNav = document.getElementById('board-nav');
@@ -2801,10 +2499,8 @@ function switchSection(section) {
   filterBar.style.display    = section === 'tarefas' ? '' : 'none';
   mobileTabs.style.display   = section === 'tarefas' ? '' : 'none';
 
-  chamadosSec.classList.toggle('show',  section === 'chamados');
   rascunhosSec.classList.toggle('show', section === 'rascunhos');
 
-  if (section === 'chamados')  { loadChamados(); }
   if (section === 'rascunhos') { loadRascunhos(); }
 }
 
@@ -2816,256 +2512,6 @@ function showMainNav() {
 
 // ═══════════════════════════════════════════════════════
 //  CHAMADOS
-// ═══════════════════════════════════════════════════════
-let allChamados    = [];
-let editingChamadoId = null;
-
-async function loadChamados() {
-  try {
-    const snap = await db.collection('chamados')
-      .where('userId', '==', currentUser.uid).get();
-    allChamados = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => {
-        const ta = a.createdAt?.toDate?.() || new Date(0);
-        const tb = b.createdAt?.toDate?.() || new Date(0);
-        return tb - ta;
-      });
-    renderChamados();
-    updateChamadosBadge();
-  } catch(e) { console.warn('loadChamados error', e); }
-}
-
-let chamadoFilterStatus = 'all';
-
-function setChamadoFilter(val, el) {
-  chamadoFilterStatus = val;
-  document.querySelectorAll('[data-ch-filter]').forEach(c => c.classList.remove('on'));
-  el.classList.add('on');
-  renderChamados();
-}
-
-function renderChamados() {
-  const list   = document.getElementById('chamado-list');
-  const search = (document.getElementById('chamados-search')?.value||'').toLowerCase();
-  const prio   = document.getElementById('chamados-filter-prio')?.value||'';
-  const status = chamadoFilterStatus;
-
-  let filtered = allChamados.filter(c => {
-    if (status !== 'all' && c.status !== status) return false;
-    if (prio) {
-      const _cu = c.urgente !== undefined ? c.urgente : (c.prio==='Alta');
-      const _ci = c.importante !== undefined ? c.importante : (c.prio!=='Baixa');
-      if (getQuadrant(_cu, _ci).key !== prio) return false;
-    }
-    if (search && !((c.titulo||'').toLowerCase().includes(search) ||
-                    (c.proto||'').toLowerCase().includes(search)  ||
-                    (c.sistema||'').toLowerCase().includes(search))) return false;
-    return true;
-  });
-
-  // Sort: quadrant priority → prazo, resolvidos por último
-  const far = '9999-99-99';
-  filtered.sort((a, b) => {
-    const aResolvido = a.status === 'Resolvido' ? 1 : 0;
-    const bResolvido = b.status === 'Resolvido' ? 1 : 0;
-    if (aResolvido !== bResolvido) return aResolvido - bResolvido;
-    const qa = getQuadrant(a.urgente !== undefined ? a.urgente : a.prio==='Alta',
-                           a.importante !== undefined ? a.importante : a.prio!=='Baixa').order;
-    const qb = getQuadrant(b.urgente !== undefined ? b.urgente : b.prio==='Alta',
-                           b.importante !== undefined ? b.importante : b.prio!=='Baixa').order;
-    if (qa !== qb) return qa - qb;
-    return (a.prazo || far).localeCompare(b.prazo || far);
-  });
-
-  if (!filtered.length) {
-    list.innerHTML = `<div class="chamados-empty">
-      <div class="chamados-empty-icon">🎫</div>
-      <div style="font-size:13px;font-weight:600">Nenhum chamado encontrado</div>
-      <div style="font-size:12px">Clique em "+ Novo Chamado" para registrar</div>
-    </div>`;
-    return;
-  }
-
-  list.innerHTML = filtered.map(c => {
-    const statusKey = (c.status||'Aberto').replace(/ /g,'-');
-    const prazoStr  = c.prazo ? (() => { const [y,m,d]=c.prazo.split('-'); return `${d}/${m}/${y}`; })() : '';
-    const vencido   = c.prazo && c.prazo < new Date().toISOString().slice(0,10) && c.status !== 'Resolvido';
-    return `
-    <div class="chamado-card status-${statusKey}" onclick="openChamadoModal('${c.id}')">
-      <div class="chamado-top">
-        ${c.proto ? `<span class="chamado-proto">${esc(c.proto)}</span>` : ''}
-        <span class="chamado-title">${esc(c.titulo||'Sem título')}</span>
-        <span class="chamado-status-badge badge-${statusKey}">${esc(c.status||'Aberto')}</span>
-      </div>
-      <div class="chamado-meta">
-        ${c.sistema     ? `<span>💻 ${esc(c.sistema)}</span>` : ''}
-        ${c.responsavel ? `<span>👤 ${esc(c.responsavel)}</span>` : ''}
-        ${c.createdAt ? (() => {
-          const raw = c.createdAt;
-          const str = raw?.toDate ? raw.toDate().toISOString().slice(0,10) : String(raw).slice(0,10);
-          const [y,m,d]=str.split('-');
-          return `<span title="Criação">🗓 ${d}/${m}/${y}</span>`;
-        })() : ''}
-        ${c.prazo ? `<span style="${vencido&&!c.completedAt?'color:var(--red);font-weight:700':''}">📅 ${prazoStr}${vencido&&!c.completedAt?' ⚠':''}</span>` : ''}
-        ${c.completedAt ? (() => { const [y,m,d]=c.completedAt.split('-'); return `<span style="color:var(--g);font-weight:600">✅ ${d}/${m}/${y}</span>`; })() : ''}
-        ${(() => {
-          const u = c.urgente !== undefined ? c.urgente : (c.prio==='Alta');
-          const i = c.importante !== undefined ? c.importante : (c.prio!=='Baixa');
-          const q = getQuadrant(u, i);
-          return `<span class="q-badge q-${q.key}" title="${q.label}">${q.icon} ${q.label}</span>`;
-        })()}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function updateChamadosBadge() {
-  const abertos = allChamados.filter(c => c.status !== 'Resolvido').length;
-  const badge = document.getElementById('chamados-badge');
-  badge.textContent = abertos;
-  badge.style.display = abertos > 0 ? 'inline-flex' : 'none';
-}
-
-function openChamadoModal(chamadoId = '') {
-  editingChamadoId = chamadoId || null;
-  const c = chamadoId ? allChamados.find(x => x.id === chamadoId) : null;
-
-  document.getElementById('chamado-modal-title').textContent = c ? 'Editar Chamado' : 'Novo Chamado';
-  document.getElementById('ch-proto').value       = c?.proto       || '';
-  document.getElementById('ch-titulo').value      = c?.titulo      || '';
-  document.getElementById('ch-sistema').value     = c?.sistema     || '';
-  document.getElementById('ch-responsavel').value = c?.responsavel || '';
-  document.getElementById('ch-prazo').value       = c?.prazo       || '';
-  document.getElementById('ch-obs').value         = c?.obs         || '';
-  document.getElementById('ch-status').value      = c?.status      || 'Aberto';
-  document.getElementById('ch-prio').value        = c?.prio        || 'Média';
-
-  const histSection = document.getElementById('ch-hist-section');
-  histSection.style.display = c ? 'block' : 'none';
-  if (c) loadChamadoHist(c.id);
-
-  document.getElementById('btn-delete-chamado').style.display = c ? 'flex' : 'none';
-  document.getElementById('chamado-overlay').classList.add('show');
-  setTimeout(() => document.getElementById('ch-titulo').focus(), 80);
-}
-
-function closeChamadoModal() {
-  document.getElementById('chamado-overlay').classList.remove('show');
-  document.getElementById('ch-hist-inp').value = '';
-  editingChamadoId = null;
-}
-
-async function saveChamado() {
-  const titulo = document.getElementById('ch-titulo').value.trim();
-  if (!titulo) {
-    const inp = document.getElementById('ch-titulo');
-    inp.style.borderColor='var(--red)'; inp.focus();
-    setTimeout(()=>inp.style.borderColor='',1500); return;
-  }
-  const chStatus = document.getElementById('ch-status').value;
-  const chToday  = new Date().toISOString().slice(0,10);
-  const existingCh = editingChamadoId ? allChamados.find(c=>c.id===editingChamadoId) : null;
-  const chWasResolved = existingCh?.status === 'Resolvido';
-  const chIsResolved  = chStatus === 'Resolvido';
-  const chCompletedAt = chIsResolved
-    ? (chWasResolved && existingCh?.completedAt ? existingCh.completedAt : chToday)
-    : null;
-  const rawChCreated = existingCh?.createdAt;
-  const chCreatedAt = rawChCreated
-    ? (rawChCreated.toDate ? rawChCreated.toDate().toISOString().slice(0,10) : String(rawChCreated).slice(0,10))
-    : chToday;
-
-  const data = {
-    titulo, proto:       document.getElementById('ch-proto').value.trim(),
-    sistema:     document.getElementById('ch-sistema').value.trim(),
-    responsavel: document.getElementById('ch-responsavel').value.trim(),
-    prazo:       document.getElementById('ch-prazo').value,
-    obs:         document.getElementById('ch-obs').value.trim(),
-    status:      chStatus,
-    urgente:    document.getElementById('ch-urgente')?.checked || false,
-    importante: document.getElementById('ch-importante')?.checked || false,
-    prio: (() => {
-      const u = document.getElementById('ch-urgente')?.checked;
-      const i = document.getElementById('ch-importante')?.checked;
-      if (u && i) return 'Alta';
-      if (i) return 'Média';
-      return 'Baixa';
-    })(),
-    completedAt: chCompletedAt,
-    createdAt:   chCreatedAt,
-  };
-  try {
-    if (editingChamadoId) {
-      await db.collection('chamados').doc(editingChamadoId).update(data);
-      const idx = allChamados.findIndex(c=>c.id===editingChamadoId);
-      if (idx>=0) allChamados[idx] = {...allChamados[idx],...data};
-      toast('✏️ Chamado atualizado!');
-    } else {
-      const ref = await db.collection('chamados').add({
-        ...data, userId: currentUser.uid
-        // createdAt already in data
-      });
-      allChamados.unshift({ id:ref.id, ...data, userId:currentUser.uid });
-      toast('🎫 Chamado registrado!');
-    }
-    closeChamadoModal();
-    renderChamados();
-    updateChamadosBadge();
-  } catch(e) { toast('Erro ao salvar: '+e.message,'red'); }
-}
-
-async function deleteChamado() {
-  if (!confirm('Excluir este chamado? Esta ação não pode ser desfeita.')) return;
-  const idToDelete = editingChamadoId;
-  closeChamadoModal();
-  try {
-    await db.collection('chamados').doc(idToDelete).delete();
-    allChamados = allChamados.filter(c=>c.id!==idToDelete);
-    renderChamados(); updateChamadosBadge();
-    toast('🗑️ Chamado removido');
-  } catch(e) { toast('Erro ao excluir: '+e.message,'red'); }
-}
-
-async function loadChamadoHist(chamadoId) {
-  const list = document.getElementById('ch-hist-list');
-  list.innerHTML = '<p style="font-size:12px;color:var(--t4)">Carregando...</p>';
-  try {
-    const snap = await db.collection('chamados').doc(chamadoId)
-      .collection('historico').orderBy('createdAt','desc').get();
-    if (snap.empty) { list.innerHTML='<p style="font-size:12px;color:var(--t4)">Sem atualizações ainda.</p>'; return; }
-    list.innerHTML = snap.docs.map(d => {
-      const h = d.data();
-      const dt = h.createdAt?.toDate ? h.createdAt.toDate() : new Date();
-      const dtStr = dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-      return `<div class="chamado-hist-item">
-        <div class="chamado-hist-dot"></div>
-        <div class="chamado-hist-body">
-          <div class="chamado-hist-meta">${dtStr} · ${esc(h.userName||'Você')}</div>
-          <div class="chamado-hist-text">${esc(h.text)}</div>
-        </div>
-      </div>`;
-    }).join('');
-  } catch(e) { list.innerHTML='<p style="font-size:12px;color:var(--red)">Erro ao carregar.</p>'; }
-}
-
-async function addChamadoHist() {
-  const inp  = document.getElementById('ch-hist-inp');
-  const text = inp.value.trim();
-  if (!text || !editingChamadoId) return;
-  try {
-    await db.collection('chamados').doc(editingChamadoId).collection('historico').add({
-      text, userId: currentUser.uid,
-      userName: currentUser.displayName || 'Você',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    inp.value='';
-    loadChamadoHist(editingChamadoId);
-    toast('📋 Atualização registrada!');
-  } catch(e) { toast('Erro','red'); }
-}
-
-// ═══════════════════════════════════════════════════════
-//  RASCUNHOS
 // ═══════════════════════════════════════════════════════
 let allRascunhos = [];
 
@@ -3200,6 +2646,131 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', updateBoardArrows);
   }
 });
+
+
+// ── EXPORTAR RELATÓRIO ───────────────────────────────────
+function exportTasks() {
+  const tasks = getFilteredTasks();
+  if (!tasks.length) { toast('Nenhuma tarefa para exportar', 'red'); return; }
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pt-BR');
+  const fmtDate = d => d ? d.split('-').reverse().join('/') : '—';
+  const quadrantLabel = t => {
+    const u = t.urgente !== undefined ? t.urgente : t.prio === 'Alta';
+    const i = t.importante !== undefined ? t.importante : t.prio !== 'Baixa';
+    return getQuadrant(u, i).label;
+  };
+
+  // Group by status
+  const colOrder = columns.map(c => c.name);
+  const byStatus = {};
+  colOrder.forEach(s => byStatus[s] = []);
+  tasks.forEach(t => {
+    if (byStatus[t.status]) byStatus[t.status].push(t);
+    else byStatus[t.status] = [t];
+  });
+
+  let html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+<title>Relatório Plenno — ${dateStr}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size:13px; color:#1a1a1a; background:#fff; }
+  .header { background:#007A3D; color:#fff; padding:24px 32px; display:flex; justify-content:space-between; align-items:center; }
+  .header h1 { font-size:22px; font-weight:800; }
+  .header .sub { font-size:13px; opacity:.8; margin-top:4px; }
+  .header .meta { text-align:right; font-size:12px; opacity:.8; }
+  .summary { display:flex; gap:16px; padding:20px 32px; background:#f8f9fa; border-bottom:1px solid #e5e7eb; flex-wrap:wrap; }
+  .sum-card { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:12px 20px; min-width:120px; }
+  .sum-num { font-size:24px; font-weight:800; color:#007A3D; }
+  .sum-lbl { font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; }
+  .section { padding:24px 32px 0; }
+  .section-title { font-size:15px; font-weight:700; color:#374151; border-bottom:2px solid #e5e7eb; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; }
+  .section-title .cnt { background:#e5e7eb; border-radius:99px; padding:2px 10px; font-size:12px; }
+  table { width:100%; border-collapse:collapse; margin-bottom:32px; }
+  th { background:#f3f4f6; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; padding:8px 12px; text-align:left; }
+  td { padding:10px 12px; border-bottom:1px solid #f3f4f6; vertical-align:top; }
+  tr:last-child td { border-bottom:none; }
+  .tag { display:inline-block; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:700; margin-right:4px; }
+  .q-faca-ja    { background:#FEE2E2; color:#991B1B; }
+  .q-decida     { background:#FEF3C7; color:#92400E; }
+  .q-delegue    { background:#FED7AA; color:#9A3412; }
+  .q-mais-tarde { background:#DCFCE7; color:#166534; }
+  .rapido-tag   { background:#DBEAFE; color:#1E40AF; }
+  .chamado-tag  { background:#EDE9FE; color:#5B21B6; }
+  .overdue      { color:#dc2626; font-weight:700; }
+  .footer { padding:20px 32px; text-align:center; color:#9ca3af; font-size:11px; border-top:1px solid #e5e7eb; margin-top:16px; }
+  @media print { body { font-size:12px; } .summary { break-inside:avoid; } }
+</style></head><body>
+<div class="header">
+  <div><div class="h1" style="font-size:22px;font-weight:800">📋 Relatório de Tarefas</div>
+  <div class="sub">Plenno — Rafael Mayer Brasil</div></div>
+  <div class="meta">Gerado em ${dateStr}<br>${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+</div>
+<div class="summary">
+  <div class="sum-card"><div class="sum-num">${tasks.length}</div><div class="sum-lbl">Total</div></div>`;
+
+  const concluded = tasks.filter(t=>t.status==='Concluído').length;
+  const inProgress = tasks.filter(t=>t.status!=='Concluído').length;
+  const overdue = tasks.filter(t=>t.date && t.date < new Date().toISOString().slice(0,10) && t.status!=='Concluído').length;
+  const withChamado = tasks.filter(t=>t.hasChamado).length;
+
+  html += `
+  <div class="sum-card"><div class="sum-num" style="color:#2563eb">${inProgress}</div><div class="sum-lbl">Em aberto</div></div>
+  <div class="sum-card"><div class="sum-num" style="color:#16a34a">${concluded}</div><div class="sum-lbl">Concluídas</div></div>
+  ${overdue ? `<div class="sum-card"><div class="sum-num" style="color:#dc2626">${overdue}</div><div class="sum-lbl">Vencidas</div></div>` : ''}
+  ${withChamado ? `<div class="sum-card"><div class="sum-num" style="color:#7c3aed">${withChamado}</div><div class="sum-lbl">Com Chamado TI</div></div>` : ''}
+</div>`;
+
+  colOrder.forEach(status => {
+    const list = byStatus[status];
+    if (!list || !list.length) return;
+    html += `<div class="section"><div class="section-title">${status} <span class="cnt">${list.length}</span></div>
+    <table><thead><tr>
+      <th style="width:30%">Título</th>
+      <th style="width:20%">Prioridade</th>
+      <th>Área</th>
+      <th>Responsável</th>
+      <th>Criação</th>
+      <th>Prevista</th>
+      <th>Conclusão</th>
+      <th>Chamado TI</th>
+    </tr></thead><tbody>`;
+
+    list.forEach(t => {
+      const isOverdue = t.date && t.date < new Date().toISOString().slice(0,10) && t.status !== 'Concluído';
+      const qLabel = quadrantLabel(t);
+      const qClass = getQuadrant(
+        t.urgente !== undefined ? t.urgente : t.prio === 'Alta',
+        t.importante !== undefined ? t.importante : t.prio !== 'Baixa'
+      ).key;
+      html += `<tr>
+        <td><strong>${t.title}</strong>${t.desc ? `<br><small style="color:#6b7280">${t.desc.slice(0,80)}${t.desc.length>80?'…':''}</small>` : ''}
+            ${t.rapido ? '<br><span class="tag rapido-tag">⚡ Rápido</span>' : ''}
+        </td>
+        <td><span class="tag q-${qClass}">${qLabel}</span></td>
+        <td>${t.area || '—'}</td>
+        <td>${t.responsavel || '—'}</td>
+        <td>${fmtDate(t.createdAt?.toDate ? t.createdAt.toDate().toISOString().slice(0,10) : t.createdAt)}</td>
+        <td class="${isOverdue?'overdue':''}">${fmtDate(t.date)}${isOverdue?' ⚠':''}</td>
+        <td>${fmtDate(t.completedAt)}</td>
+        <td>${t.hasChamado ? `<span class="tag chamado-tag">🎫 ${t.chamadoNum||'—'}</span>` : '—'}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  });
+
+  html += `<div class="footer">Relatório gerado pelo Plenno • ${dateStr}</div></body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `Relatorio_Tarefas_${now.toISOString().slice(0,10)}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('📊 Relatório exportado!');
+}
 
 // keyboard shortcuts
 document.addEventListener('keydown', e => {
