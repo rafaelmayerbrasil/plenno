@@ -1308,6 +1308,206 @@ header { background: var(--header-color) !important; transition: background .3s 
 
 
   <!-- ═══════════ CHAMADOS SECTION ═══════════ -->
+<div id="notif-panel">
+  <div class="notif-head">
+    <h3>🔔 Notificações</h3>
+    <button class="modal-close" id="btn-close-notif">✕</button>
+  </div>
+  <div class="notif-list" id="notif-list">
+    <div class="notif-empty">Nenhuma notificação</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     USER MENU
+═══════════════════════════════════════ -->
+<div id="user-menu">
+  <div class="user-menu-info">
+    <img src="" alt="" id="um-avatar">
+    <div>
+      <p id="um-name"></p>
+      <span id="um-email"></span>
+    </div>
+  </div>
+  <div class="user-menu-item" id="um-settings">⚙️ Configurações</div>
+  <div class="user-menu-item danger" id="um-logout">🚪 Sair</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: TASK
+═══════════════════════════════════════ -->
+<div class="overlay" id="task-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="task-modal-title">Nova Tarefa</div>
+        <div class="modal-subtitle" id="task-modal-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeTaskModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <label>Título *</label>
+        <input type="text" id="t-title" placeholder="Ex: Verificar proposta do fornecedor X" maxlength="150">
+      </div>
+      <div class="fg">
+        <label>Descrição</label>
+        <textarea id="t-desc" placeholder="Contexto, links, observações..."></textarea>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>Status</label>
+          <select id="t-status"></select>
+        </div>
+        <div class="fg">
+          <label>Prioridade</label>
+          <div class="ei-row">
+            <label class="ei-toggle" id="t-toggle-urgente">
+              <input type="checkbox" id="t-urgente" onchange="updateEiPreview('t')">
+              ⚡ Urgente
+            </label>
+            <label class="ei-toggle" id="t-toggle-importante">
+              <input type="checkbox" id="t-importante" onchange="updateEiPreview('t')">
+              ⭐ Importante
+            </label>
+          </div>
+          <div id="t-q-preview" class="q-preview q-mais-tarde" style="margin-top:6px">🟢 Faça mais tarde</div>
+        </div>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>Data Prevista</label>
+          <input type="date" id="t-date">
+        </div>
+        <div class="fg">
+          <label>Área / Projeto</label>
+          <input type="text" id="t-area" placeholder="SAP, Automação, Follow Up...">
+        </div>
+        <div class="fg">
+          <label>Responsável</label>
+          <input type="text" id="t-responsavel" placeholder="Quem vai executar...">
+        </div>
+        <div class="fg">
+          <label>Execução rápida?</label>
+          <label class="rapido-toggle" id="t-rapido-toggle">
+            <input type="checkbox" id="t-rapido" onchange="document.getElementById('t-rapido-toggle').classList.toggle('checked', this.checked)">
+            ⚡ Tarefa rápida (menos de 5 min)
+          </label>
+        </div>
+        <div class="fg">
+          <label>🎫 Chamado TI?</label>
+          <label class="rapido-toggle" id="t-chamado-toggle" style="border-color:var(--border)">
+            <input type="checkbox" id="t-has-chamado" onchange="toggleChamadoField()">
+            Essa tarefa gerou um chamado na TI
+          </label>
+        </div>
+        <div class="fg" id="t-chamado-num-wrap" style="display:none">
+          <label>Número do Chamado</label>
+          <input type="text" id="t-chamado-num" placeholder="Ex: INC0012345">
+        </div>
+      </div>
+      <div class="fg-row" id="t-dates-row" style="display:flex;gap:12px">
+        <div class="fg">
+          <label>📅 Criação</label>
+          <input type="date" id="t-created-at" readonly style="background:var(--bg);border-color:var(--border);color:var(--t3);cursor:default;font-size:12px">
+        </div>
+        <div class="fg" id="t-completed-wrap" style="display:none">
+          <label>✅ Conclusão</label>
+          <input type="date" id="t-completed-at" readonly style="background:var(--gl);border-color:var(--g);color:var(--gd);cursor:default;font-size:12px">
+        </div>
+      </div>
+
+      <!-- SUBTAREFAS -->
+      <div class="fg">
+        <label>Subtarefas <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--t4)">— opcional</span></label>
+        <div class="sub-prog-wrap" id="sub-prog-wrap" style="display:none">
+          <div class="sub-prog-fill" id="sub-prog-fill"></div>
+        </div>
+        <div class="sub-list" id="sub-list"></div>
+        <div class="sub-inp-row">
+          <input type="text" id="sub-inp" placeholder="Adicionar subtarefa..." maxlength="200"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addSubModal();}">
+          <button class="btn-sub-add" onclick="addSubModal()">＋</button>
+        </div>
+      </div>
+
+      <!-- COMENTÁRIOS (só em tasks existentes) -->
+      <div class="comments-section" id="comments-section" style="display:none">
+        <div class="comments-title">💬 Histórico & Comentários</div>
+        <div class="comment-list" id="comment-list"></div>
+        <div class="comment-input-row">
+          <textarea id="comment-inp" placeholder="Adicionar comentário ou registro de atividade..." rows="2"></textarea>
+          <button class="btn btn-primary btn-sm" onclick="addComment()">Enviar</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="btn-delete-task" style="display:none;color:var(--red)">🗑️ Excluir</button>
+      <button class="btn btn-ghost" id="btn-share-task" style="display:none">🔗 Compartilhar</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeTaskModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTask()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: SETTINGS (Status Config)
+═══════════════════════════════════════ -->
+<div class="overlay" id="settings-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">⚙️ Configurar Status</div>
+        <div class="modal-subtitle">Crie, edite e reordene as colunas do Plenno</div>
+      </div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="status-list" id="settings-status-list"></div>
+      <button class="btn btn-ghost" style="width:100%" onclick="addStatusItem()">＋ Novo Status</button>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeSettings()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: SHARE
+═══════════════════════════════════════ -->
+<div class="overlay" id="share-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">🔗 Compartilhar Tarefa</div>
+        <div class="modal-subtitle">Envie o link para um colega colaborar</div>
+      </div>
+      <button class="modal-close" onclick="closeShare()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--t2);margin-bottom:12px;line-height:1.6">
+        Qualquer pessoa com este link e conta Google poderá ver e colaborar nesta tarefa. Ela aparecerá no Plenno dela.
+      </p>
+      <div class="share-link-box">
+        <input type="text" id="share-link-input" readonly>
+        <button class="btn btn-primary btn-sm" onclick="copyShareLink()">Copiar</button>
+      </div>
+      <div id="share-colabs-wrap" style="margin-top:20px;display:none">
+        <div style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Colaboradores</div>
+        <div class="share-invited-list" id="share-colabs-list"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeShare()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- TOAST CONTAINER -->
+
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toast-container"></div>
 
