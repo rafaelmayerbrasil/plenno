@@ -2359,16 +2359,47 @@ function setColor(idx, color) {
 async function saveSettings() {
   const names = tempColumns.map(c=>c.value||c.name).filter(Boolean);
   if (new Set(names).size !== names.length) { toast('Nomes duplicados!','red'); return; }
-  // sync names from inputs
+
+  // Sync names from inputs and detect renames
+  const oldNames = columns.map(c => c.name);
   document.querySelectorAll('.status-name-inp').forEach((inp,i) => {
     if (tempColumns[i]) tempColumns[i].name = inp.value.trim() || tempColumns[i].name;
   });
   tempColumns.forEach((c,i) => c.order = i);
+
+  // Build rename map: oldName → newName (only changed ones)
+  const renameMap = {};
+  oldNames.forEach((oldName, i) => {
+    const newName = tempColumns[i]?.name;
+    if (newName && oldName !== newName) renameMap[oldName] = newName;
+  });
+
   columns = tempColumns;
   await saveColumns();
+
+  // Migrate tasks in Firestore and local array
+  if (Object.keys(renameMap).length) {
+    const batch = db.batch();
+    let count = 0;
+    allTasks.forEach(t => {
+      if (renameMap[t.status]) {
+        batch.update(db.collection('tasks').doc(t.id), { status: renameMap[t.status] });
+        t.status = renameMap[t.status]; // update local too
+        count++;
+      }
+    });
+    if (count > 0) {
+      await batch.commit();
+      toast(`✅ Colunas atualizadas! ${count} tarefa(s) migrada(s).`);
+    } else {
+      toast('✅ Colunas atualizadas!');
+    }
+  } else {
+    toast('✅ Colunas atualizadas!');
+  }
+
   closeSettings();
   buildBoard();
-  toast('✅ Colunas atualizadas!');
 }
 
 // ── SHARING ────────────────────────────────────────────
@@ -2663,7 +2694,8 @@ function buildStatsBar() {
 }
 
 function setColFilter(colName) {
-  activeColFilter = colName;
+  // Toggle off if clicking the same column again
+  activeColFilter = (activeColFilter === colName) ? null : colName;
   buildStatsBar();
   // On mobile: switch tab
   if (colName) switchMobileTab(colName);
