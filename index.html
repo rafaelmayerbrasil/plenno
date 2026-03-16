@@ -1506,7 +1506,88 @@ header { background: var(--header-color) !important; transition: background .3s 
 </div>
 
 
-<!-- TOAST CONTAINER -->
+<!-- EXPORT MODAL -->
+<div class="overlay" id="export-overlay">
+  <div class="modal modal-lg" style="max-width:640px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">📊 Exportar Relatório</div>
+        <div class="modal-subtitle">Configure o que deseja exportar</div>
+      </div>
+      <button class="btn-icon-close" onclick="closeExportModal()">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Status incluídos</div>
+      <div id="export-status-checks" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+      <div class="fg-row" style="display:flex;gap:12px;margin-bottom:16px">
+        <div class="fg">
+          <label>Área / Projeto</label>
+          <select id="export-area" class="filter-select" style="width:100%" onchange="updateExportPreview()">
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Prioridade</label>
+          <select id="export-prio" class="filter-select" style="width:100%" onchange="updateExportPreview()">
+            <option value="">Todas</option>
+            <option value="faca-ja">🔴 Faça imediatamente</option>
+            <option value="decida">🟡 Decida quando fazer</option>
+            <option value="delegue">🟠 Delegue</option>
+            <option value="mais-tarde">🟢 Faça mais tarde</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg-row" style="display:flex;gap:12px;margin-bottom:16px">
+        <div class="fg">
+          <label>Data prevista — de</label>
+          <input type="date" id="export-date-from" class="filter-select" style="width:100%" onchange="updateExportPreview()">
+        </div>
+        <div class="fg">
+          <label>Data prevista — até</label>
+          <input type="date" id="export-date-to" class="filter-select" style="width:100%" onchange="updateExportPreview()">
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;margin-top:4px">Conteúdo</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+        <label class="ei-toggle checked-importante" id="exp-toggle-subs" style="font-size:13px">
+          <input type="checkbox" id="export-subs" checked onchange="this.closest('.ei-toggle').classList.toggle('checked-importante',this.checked);updateExportPreview()">
+          📋 Subtarefas
+        </label>
+        <label class="ei-toggle" id="exp-toggle-comments" style="font-size:13px">
+          <input type="checkbox" id="export-comments" onchange="this.closest('.ei-toggle').classList.toggle('checked-importante',this.checked)">
+          💬 Comentários
+        </label>
+        <label class="ei-toggle checked-importante" id="exp-toggle-desc" style="font-size:13px">
+          <input type="checkbox" id="export-desc" checked onchange="this.closest('.ei-toggle').classList.toggle('checked-importante',this.checked);updateExportPreview()">
+          📝 Descrição
+        </label>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Ordenar por</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+        <select id="export-sort" class="filter-select" onchange="updateExportPreview()">
+          <option value="status">Status (colunas)</option>
+          <option value="prio">Prioridade</option>
+          <option value="date">Data prevista</option>
+          <option value="created">Data de criação</option>
+          <option value="area">Área</option>
+        </select>
+        <select id="export-sort-dir" class="filter-select" onchange="updateExportPreview()">
+          <option value="asc">Crescente ↑</option>
+          <option value="desc">Decrescente ↓</option>
+        </select>
+      </div>
+      <div id="export-preview" style="background:var(--bg);border-radius:var(--r8);padding:12px 16px;font-size:13px;color:var(--t2)">
+        Carregando prévia...
+      </div>
+    </div>
+    <div class="modal-foot" style="gap:8px">
+      <button class="btn btn-ghost" onclick="closeExportModal()">Cancelar</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost btn-sm" onclick="runExport('xlsx')" style="border-color:var(--g);color:var(--g)">📗 Excel (.xlsx)</button>
+      <button class="btn btn-primary btn-sm" onclick="runExport('html')">🖨️ HTML / Imprimir</button>
+    </div>
+  </div>
+</div>
 
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toast-container"></div>
@@ -2849,127 +2930,339 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ── EXPORTAR RELATÓRIO ───────────────────────────────────
+
+// ── EXPORT MODAL ─────────────────────────────────────────
+let _exportComments = {}; // cache: taskId → comments array
+
 function exportTasks() {
-  const tasks = getFilteredTasks();
+  // Populate status checkboxes
+  const checksEl = document.getElementById('export-status-checks');
+  checksEl.innerHTML = columns.map(col => `
+    <label class="ei-toggle checked-importante" style="font-size:12px">
+      <input type="checkbox" class="exp-status-cb" value="${col.name}" checked
+        onchange="updateExportPreview()">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col.color};margin-right:4px"></span>
+      ${col.name}
+    </label>`).join('');
+
+  // Populate area dropdown
+  const areaEl = document.getElementById('export-area');
+  const areas = [...new Set(allTasks.map(t => t.area).filter(Boolean))].sort();
+  areaEl.innerHTML = '<option value="">Todas</option>' +
+    areas.map(a => `<option value="${a}">${a}</option>`).join('');
+
+  // Reset fields
+  document.getElementById('export-prio').value      = '';
+  document.getElementById('export-date-from').value = '';
+  document.getElementById('export-date-to').value   = '';
+  document.getElementById('export-sort').value      = 'status';
+  document.getElementById('export-sort-dir').value  = 'asc';
+  document.getElementById('export-subs').checked    = true;
+  document.getElementById('export-comments').checked = false;
+  document.getElementById('export-desc').checked    = true;
+  ['exp-toggle-subs','exp-toggle-desc'].forEach(id =>
+    document.getElementById(id).classList.add('checked-importante'));
+  document.getElementById('exp-toggle-comments').classList.remove('checked-importante');
+
+  updateExportPreview();
+  document.getElementById('export-overlay').classList.add('show');
+}
+
+function closeExportModal() {
+  document.getElementById('export-overlay').classList.remove('show');
+}
+
+function getExportTasks() {
+  const selectedStatus = [...document.querySelectorAll('.exp-status-cb:checked')].map(c => c.value);
+  const area     = document.getElementById('export-area').value;
+  const prio     = document.getElementById('export-prio').value;
+  const dateFrom = document.getElementById('export-date-from').value;
+  const dateTo   = document.getElementById('export-date-to').value;
+  const sortBy   = document.getElementById('export-sort').value;
+  const sortDir  = document.getElementById('export-sort-dir').value;
+
+  let tasks = allTasks.filter(t => {
+    if (!selectedStatus.includes(t.status)) return false;
+    if (area && t.area !== area) return false;
+    if (prio) {
+      const u = t.urgente !== undefined ? t.urgente : t.prio === 'Alta';
+      const i = t.importante !== undefined ? t.importante : t.prio !== 'Baixa';
+      if (getQuadrant(u, i).key !== prio) return false;
+    }
+    if (dateFrom && t.date && t.date < dateFrom) return false;
+    if (dateTo   && t.date && t.date > dateTo)   return false;
+    return true;
+  });
+
+  const colOrder = columns.reduce((m, c, i) => { m[c.name] = i; return m; }, {});
+  const fmtCreated = t => {
+    const r = t.createdAt;
+    return r?.toDate ? r.toDate().toISOString().slice(0,10) : (r || '');
+  };
+  tasks.sort((a, b) => {
+    let va, vb;
+    if (sortBy === 'status')   { va = colOrder[a.status] ?? 99; vb = colOrder[b.status] ?? 99; }
+    else if (sortBy === 'prio') {
+      const qa = getQuadrant(a.urgente !== undefined ? a.urgente : a.prio==='Alta', a.importante !== undefined ? a.importante : a.prio!=='Baixa').order;
+      const qb = getQuadrant(b.urgente !== undefined ? b.urgente : b.prio==='Alta', b.importante !== undefined ? b.importante : b.prio!=='Baixa').order;
+      va = qa; vb = qb;
+    }
+    else if (sortBy === 'date')    { va = a.date || '9999'; vb = b.date || '9999'; }
+    else if (sortBy === 'created') { va = fmtCreated(a); vb = fmtCreated(b); }
+    else if (sortBy === 'area')    { va = a.area || ''; vb = b.area || ''; }
+    const cmp = typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb));
+    return sortDir === 'desc' ? -cmp : cmp;
+  });
+  return tasks;
+}
+
+function updateExportPreview() {
+  const tasks = getExportTasks();
+  const subs = document.getElementById('export-subs').checked;
+  const desc = document.getElementById('export-desc').checked;
+  let totalSubs = 0;
+  tasks.forEach(t => { totalSubs += (t.subtasks || []).length; });
+  const el = document.getElementById('export-preview');
+  el.innerHTML = `
+    <div style="display:flex;gap:20px;flex-wrap:wrap">
+      <span><strong style="font-size:18px;color:var(--g)">${tasks.length}</strong> tarefas selecionadas</span>
+      ${subs ? `<span><strong style="font-size:18px;color:var(--blue)">${totalSubs}</strong> subtarefas</span>` : ''}
+      ${tasks.filter(t=>t.hasChamado).length ? `<span><strong style="font-size:18px;color:var(--purple)">${tasks.filter(t=>t.hasChamado).length}</strong> com chamado TI</span>` : ''}
+    </div>`;
+}
+
+async function fetchCommentsForTasks(tasks) {
+  const toFetch = tasks.filter(t => !_exportComments[t.id]);
+  if (!toFetch.length) return;
+  toast('💬 Carregando comentários...', 'blue');
+  await Promise.all(toFetch.map(async t => {
+    try {
+      const snap = await db.collection('tasks').doc(t.id)
+        .collection('comments').orderBy('createdAt','asc').get();
+      _exportComments[t.id] = snap.docs.map(d => {
+        const data = d.data();
+        const dt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+        return { text: data.text, author: data.authorName || 'Usuário',
+                 date: dt.toLocaleDateString('pt-BR') };
+      });
+    } catch(e) { _exportComments[t.id] = []; }
+  }));
+}
+
+async function runExport(format) {
+  const tasks = getExportTasks();
   if (!tasks.length) { toast('Nenhuma tarefa para exportar', 'red'); return; }
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('pt-BR');
-  const fmtDate = d => d ? d.split('-').reverse().join('/') : '—';
+  const inclSubs     = document.getElementById('export-subs').checked;
+  const inclComments = document.getElementById('export-comments').checked;
+  const inclDesc     = document.getElementById('export-desc').checked;
+
+  if (inclComments) await fetchCommentsForTasks(tasks);
+
+  closeExportModal();
+
+  if (format === 'xlsx') {
+    exportToExcel(tasks, inclSubs, inclComments, inclDesc);
+  } else {
+    exportToHTML(tasks, inclSubs, inclComments, inclDesc);
+  }
+}
+
+// ── EXCEL EXPORT ─────────────────────────────────────────
+function exportToExcel(tasks, inclSubs, inclComments, inclDesc) {
+  const fmtDate = d => {
+    if (!d) return '';
+    const r = d?.toDate ? d.toDate().toISOString().slice(0,10) : String(d).slice(0,10);
+    return r ? r.split('-').reverse().join('/') : '';
+  };
   const quadrantLabel = t => {
     const u = t.urgente !== undefined ? t.urgente : t.prio === 'Alta';
     const i = t.importante !== undefined ? t.importante : t.prio !== 'Baixa';
     return getQuadrant(u, i).label;
   };
 
-  // Group by status
-  const colOrder = columns.map(c => c.name);
-  const byStatus = {};
-  colOrder.forEach(s => byStatus[s] = []);
+  const rows = [['Tipo','Título','Status','Prioridade','Área','Responsável',
+    'Rápido','Chamado TI','Nº Chamado','Criação','Data Prevista','Conclusão',
+    inclDesc ? 'Descrição' : null,'Subtarefas Concluídas'].filter(Boolean)];
+
   tasks.forEach(t => {
-    if (byStatus[t.status]) byStatus[t.status].push(t);
-    else byStatus[t.status] = [t];
+    const subDone = (t.subtasks||[]).filter(s=>s.done).length;
+    const subTotal = (t.subtasks||[]).length;
+    const row = ['Tarefa', t.title, t.status, quadrantLabel(t),
+      t.area||'', t.responsavel||'',
+      t.rapido ? 'Sim' : 'Não',
+      t.hasChamado ? 'Sim' : 'Não',
+      t.chamadoNum||'',
+      fmtDate(t.createdAt), fmtDate(t.date), fmtDate(t.completedAt),
+      inclDesc ? (t.desc||'') : null,
+      subTotal ? `${subDone}/${subTotal}` : ''
+    ].filter((_, i) => rows[0][i] !== undefined);
+    rows.push(row);
+
+    if (inclSubs && t.subtasks?.length) {
+      t.subtasks.forEach(s => {
+        const subrow = ['  ↳ Subtarefa', s.text, s.done ? 'Concluída' : 'Pendente',
+          '','','','','','','','','',
+          inclDesc ? '' : null, ''
+        ].filter((_, i) => rows[0][i] !== undefined);
+        rows.push(subrow);
+      });
+    }
+
+    if (inclComments && _exportComments[t.id]?.length) {
+      _exportComments[t.id].forEach(c => {
+        const crow = ['  💬 Comentário', c.text, '', '', '', c.author,
+          '','','', c.date,'','',
+          inclDesc ? '' : null, ''
+        ].filter((_, i) => rows[0][i] !== undefined);
+        rows.push(crow);
+      });
+    }
   });
+
+  // Build workbook using SheetJS
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  script.onload = () => {
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    // Column widths
+    ws['!cols'] = [10,40,18,25,18,18,8,12,16,14,14,14,50,16].map(w => ({wch:w}));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Tarefas');
+    XLSX.writeFile(wb, `Plenno_${new Date().toISOString().slice(0,10)}.xlsx`);
+    toast('📗 Excel exportado!');
+  };
+  script.onerror = () => toast('Erro ao carregar SheetJS', 'red');
+  document.head.appendChild(script);
+}
+
+// ── HTML EXPORT ──────────────────────────────────────────
+function exportToHTML(tasks, inclSubs, inclComments, inclDesc) {
+  const fmtDate = d => {
+    if (!d) return '—';
+    const r = d?.toDate ? d.toDate().toISOString().slice(0,10) : String(d).slice(0,10);
+    return r ? r.split('-').reverse().join('/') : '—';
+  };
+  const quadrantLabel = t => {
+    const u = t.urgente !== undefined ? t.urgente : t.prio === 'Alta';
+    const i = t.importante !== undefined ? t.importante : t.prio !== 'Baixa';
+    return getQuadrant(u, i);
+  };
+  const now = new Date();
+  const concluded = tasks.filter(t=>t.status==='Concluído').length;
+  const overdue   = tasks.filter(t=>t.date && t.date < now.toISOString().slice(0,10) && t.status!=='Concluído').length;
 
   let html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
-<title>Relatório Plenno — ${dateStr}</title>
+<title>Relatório Plenno — ${now.toLocaleDateString('pt-BR')}</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size:13px; color:#1a1a1a; background:#fff; }
-  .header { background:#007A3D; color:#fff; padding:24px 32px; display:flex; justify-content:space-between; align-items:center; }
-  .header h1 { font-size:22px; font-weight:800; }
-  .header .sub { font-size:13px; opacity:.8; margin-top:4px; }
-  .header .meta { text-align:right; font-size:12px; opacity:.8; }
-  .summary { display:flex; gap:16px; padding:20px 32px; background:#f8f9fa; border-bottom:1px solid #e5e7eb; flex-wrap:wrap; }
-  .sum-card { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:12px 20px; min-width:120px; }
-  .sum-num { font-size:24px; font-weight:800; color:#007A3D; }
-  .sum-lbl { font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; }
-  .section { padding:24px 32px 0; }
-  .section-title { font-size:15px; font-weight:700; color:#374151; border-bottom:2px solid #e5e7eb; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; }
-  .section-title .cnt { background:#e5e7eb; border-radius:99px; padding:2px 10px; font-size:12px; }
-  table { width:100%; border-collapse:collapse; margin-bottom:32px; }
-  th { background:#f3f4f6; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; padding:8px 12px; text-align:left; }
-  td { padding:10px 12px; border-bottom:1px solid #f3f4f6; vertical-align:top; }
-  tr:last-child td { border-bottom:none; }
-  .tag { display:inline-block; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:700; margin-right:4px; }
-  .q-faca-ja    { background:#FEE2E2; color:#991B1B; }
-  .q-decida     { background:#FEF3C7; color:#92400E; }
-  .q-delegue    { background:#FED7AA; color:#9A3412; }
-  .q-mais-tarde { background:#DCFCE7; color:#166534; }
-  .rapido-tag   { background:#DBEAFE; color:#1E40AF; }
-  .chamado-tag  { background:#EDE9FE; color:#5B21B6; }
-  .overdue      { color:#dc2626; font-weight:700; }
-  .footer { padding:20px 32px; text-align:center; color:#9ca3af; font-size:11px; border-top:1px solid #e5e7eb; margin-top:16px; }
-  @media print { body { font-size:12px; } .summary { break-inside:avoid; } }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#111;background:#fff}
+.header{background:#007A3D;color:#fff;padding:24px 32px;display:flex;justify-content:space-between;align-items:center}
+.header h1{font-size:20px;font-weight:800}
+.header .meta{font-size:12px;opacity:.8;text-align:right}
+.summary{display:flex;gap:12px;padding:16px 32px;background:#f8f9fa;border-bottom:1px solid #e5e7eb;flex-wrap:wrap}
+.sc{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 18px;min-width:100px}
+.sc-num{font-size:22px;font-weight:800;color:#007A3D}.sc-lbl{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px}
+.section{padding:20px 32px 0}
+.section-title{font-size:14px;font-weight:700;color:#374151;border-left:4px solid;padding-left:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-count{background:#e5e7eb;border-radius:99px;padding:1px 8px;font-size:12px;font-weight:700}
+table{width:100%;border-collapse:collapse;margin-bottom:28px;font-size:12px}
+th{background:#f3f4f6;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;padding:7px 10px;text-align:left;white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top}
+.sub-row td{background:#f9fafb;color:#374151;padding:6px 10px 6px 28px;border-bottom:1px solid #f3f4f6}
+.comment-row td{background:#fefce8;color:#713f12;padding:6px 10px 6px 28px;border-bottom:1px solid #f3f4f6;font-style:italic}
+.tag{display:inline-block;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700;margin-right:3px;white-space:nowrap}
+.q-faca-ja{background:#FEE2E2;color:#991B1B}.q-decida{background:#FEF3C7;color:#92400E}
+.q-delegue{background:#FED7AA;color:#9A3412}.q-mais-tarde{background:#DCFCE7;color:#166534}
+.rapido-t{background:#DBEAFE;color:#1E40AF}.chamado-t{background:#EDE9FE;color:#5B21B6}
+.overdue{color:#dc2626;font-weight:700}.done{color:#16a34a}
+.sub-check{color:#16a34a;font-weight:700}.sub-open{color:#6b7280}
+.footer{padding:16px 32px;text-align:center;color:#9ca3af;font-size:11px;border-top:1px solid #e5e7eb;margin-top:12px}
+@media print{.header{-webkit-print-color-adjust:exact;print-color-adjust:exact}th{background:#f3f4f6 !important}}
 </style></head><body>
 <div class="header">
-  <div><div class="h1" style="font-size:22px;font-weight:800">📋 Relatório de Tarefas</div>
-  <div class="sub">Plenno — Rafael Mayer Brasil</div></div>
-  <div class="meta">Gerado em ${dateStr}<br>${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+  <div><h1>📋 Relatório de Tarefas — Plenno</h1>
+  <div style="font-size:12px;opacity:.8;margin-top:4px">${currentUser?.displayName || ''}</div></div>
+  <div class="meta">Gerado em ${now.toLocaleDateString('pt-BR')}<br>${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
 </div>
 <div class="summary">
-  <div class="sum-card"><div class="sum-num">${tasks.length}</div><div class="sum-lbl">Total</div></div>`;
-
-  const concluded = tasks.filter(t=>t.status==='Concluído').length;
-  const inProgress = tasks.filter(t=>t.status!=='Concluído').length;
-  const overdue = tasks.filter(t=>t.date && t.date < new Date().toISOString().slice(0,10) && t.status!=='Concluído').length;
-  const withChamado = tasks.filter(t=>t.hasChamado).length;
-
-  html += `
-  <div class="sum-card"><div class="sum-num" style="color:#2563eb">${inProgress}</div><div class="sum-lbl">Em aberto</div></div>
-  <div class="sum-card"><div class="sum-num" style="color:#16a34a">${concluded}</div><div class="sum-lbl">Concluídas</div></div>
-  ${overdue ? `<div class="sum-card"><div class="sum-num" style="color:#dc2626">${overdue}</div><div class="sum-lbl">Vencidas</div></div>` : ''}
-  ${withChamado ? `<div class="sum-card"><div class="sum-num" style="color:#7c3aed">${withChamado}</div><div class="sum-lbl">Com Chamado TI</div></div>` : ''}
+  <div class="sc"><div class="sc-num">${tasks.length}</div><div class="sc-lbl">Total</div></div>
+  <div class="sc"><div class="sc-num" style="color:#2563eb">${tasks.length-concluded}</div><div class="sc-lbl">Em aberto</div></div>
+  <div class="sc"><div class="sc-num" style="color:#16a34a">${concluded}</div><div class="sc-lbl">Concluídas</div></div>
+  ${overdue ? `<div class="sc"><div class="sc-num" style="color:#dc2626">${overdue}</div><div class="sc-lbl">Vencidas</div></div>` : ''}
+  ${tasks.filter(t=>t.hasChamado).length ? `<div class="sc"><div class="sc-num" style="color:#7c3aed">${tasks.filter(t=>t.hasChamado).length}</div><div class="sc-lbl">Com Chamado TI</div></div>` : ''}
 </div>`;
 
-  colOrder.forEach(status => {
-    const list = byStatus[status];
-    if (!list || !list.length) return;
-    html += `<div class="section"><div class="section-title">${status} <span class="cnt">${list.length}</span></div>
-    <table><thead><tr>
-      <th style="width:30%">Título</th>
-      <th style="width:20%">Prioridade</th>
-      <th>Área</th>
-      <th>Responsável</th>
-      <th>Criação</th>
-      <th>Prevista</th>
-      <th>Conclusão</th>
-      <th>Chamado TI</th>
-    </tr></thead><tbody>`;
+  // Group by status if sort is 'status', otherwise flat table
+  const colOrder = columns.reduce((m,c,i) => { m[c.name]=i; return m; }, {});
+  const grouped = document.getElementById('export-sort').value === 'status';
 
-    list.forEach(t => {
-      const isOverdue = t.date && t.date < new Date().toISOString().slice(0,10) && t.status !== 'Concluído';
-      const qLabel = quadrantLabel(t);
-      const qClass = getQuadrant(
-        t.urgente !== undefined ? t.urgente : t.prio === 'Alta',
-        t.importante !== undefined ? t.importante : t.prio !== 'Baixa'
-      ).key;
-      html += `<tr>
-        <td><strong>${t.title}</strong>${t.desc ? `<br><small style="color:#6b7280">${t.desc.slice(0,80)}${t.desc.length>80?'…':''}</small>` : ''}
-            ${t.rapido ? '<br><span class="tag rapido-tag">⚡ Rápido</span>' : ''}
-        </td>
-        <td><span class="tag q-${qClass}">${qLabel}</span></td>
-        <td>${t.area || '—'}</td>
-        <td>${t.responsavel || '—'}</td>
-        <td>${fmtDate(t.createdAt?.toDate ? t.createdAt.toDate().toISOString().slice(0,10) : t.createdAt)}</td>
-        <td class="${isOverdue?'overdue':''}">${fmtDate(t.date)}${isOverdue?' ⚠':''}</td>
-        <td>${fmtDate(t.completedAt)}</td>
-        <td>${t.hasChamado ? `<span class="tag chamado-tag">🎫 ${t.chamadoNum||'—'}</span>` : '—'}</td>
-      </tr>`;
+  const renderRows = (list) => list.map(t => {
+    const q = quadrantLabel(t);
+    const isOverdue = t.date && t.date < now.toISOString().slice(0,10) && t.status !== 'Concluído';
+    const subDone = (t.subtasks||[]).filter(s=>s.done).length;
+    const subTotal = (t.subtasks||[]).length;
+    let rows = `<tr>
+      <td><strong>${t.title}</strong>${inclDesc && t.desc ? `<br><small style="color:#6b7280">${t.desc.replace(/</g,'&lt;')}</small>` : ''}</td>
+      ${!grouped ? `<td>${t.status}</td>` : ''}
+      <td><span class="tag q-${q.key}">${q.icon} ${q.label}</span>
+          ${t.rapido ? '<span class="tag rapido-t">⚡ Rápido</span>' : ''}
+          ${t.hasChamado ? `<span class="tag chamado-t">🎫 ${t.chamadoNum||'TI'}</span>` : ''}</td>
+      <td>${t.area||'—'}</td>
+      <td>${t.responsavel||'—'}</td>
+      <td class="${isOverdue?'overdue':''}">${fmtDate(t.date)}${isOverdue?' ⚠':''}</td>
+      <td class="done">${fmtDate(t.completedAt)}</td>
+      ${subTotal ? `<td><span class="${subDone===subTotal?'done':''}">${subDone}/${subTotal}</span></td>` : '<td>—</td>'}
+    </tr>`;
+    if (inclSubs && t.subtasks?.length) {
+      t.subtasks.forEach(s => {
+        rows += `<tr class="sub-row"><td colspan="${grouped?7:8}" style="padding-left:28px">
+          <span class="${s.done?'sub-check':'sub-open'}">${s.done?'✅':'⬜'}</span> ${s.text}</td></tr>`;
+      });
+    }
+    if (inclComments && _exportComments[t.id]?.length) {
+      _exportComments[t.id].forEach(c => {
+        rows += `<tr class="comment-row"><td colspan="${grouped?7:8}" style="padding-left:28px">
+          💬 <strong>${c.author}</strong> (${c.date}): ${c.text.replace(/</g,'&lt;')}</td></tr>`;
+      });
+    }
+    return rows;
+  }).join('');
+
+  const tableHead = (includeStatus) => `<thead><tr>
+    <th style="width:32%">Título${inclDesc?' / Descrição':''}</th>
+    ${includeStatus ? '<th>Status</th>' : ''}
+    <th>Prioridade</th><th>Área</th><th>Responsável</th>
+    <th>Data Prevista</th><th>Conclusão</th><th>Subtarefas</th>
+  </tr></thead>`;
+
+  if (grouped) {
+    columns.forEach(col => {
+      const list = tasks.filter(t => t.status === col.name);
+      if (!list.length) return;
+      html += `<div class="section">
+        <div class="section-title" style="border-color:${col.color}">
+          ${col.name} <span class="section-count">${list.length}</span>
+        </div>
+        <table>${tableHead(false)}<tbody>${renderRows(list)}</tbody></table>
+      </div>`;
     });
-    html += `</tbody></table></div>`;
+  } else {
+    html += `<div class="section" style="padding-top:20px">
+      <table>${tableHead(true)}<tbody>${renderRows(tasks)}</tbody></table>
+    </div>`;
+  }
+
+  html += `<div class="footer">Relatório Plenno • Gerado em ${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+</body></html>`;
+
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(blob),
+    download: `Plenno_${now.toISOString().slice(0,10)}.html`
   });
-
-  html += `<div class="footer">Relatório gerado pelo Plenno • ${dateStr}</div></body></html>`;
-
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `Relatorio_Tarefas_${now.toISOString().slice(0,10)}.html`;
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('📊 Relatório exportado!');
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('🖨️ Relatório HTML gerado!');
 }
 
 // keyboard shortcuts
