@@ -1657,15 +1657,22 @@ auth.onAuthStateChanged(async user => {
 });
 
 async function onLogin() {
-  showApp();
-  updateHeaderUser();
-  showMainNav();
-  await loadColumns();
-  await loadTasks();
-  buildBoard();
-  checkShareFromUrl();
-  buildNotifications();
-  requestNotifPermission();
+  try {
+    showApp();
+    updateHeaderUser();
+    showMainNav();
+    await loadColumns();
+    await loadTasks();
+    buildBoard();
+    checkShareFromUrl();
+    buildNotifications();
+    requestNotifPermission();
+    // migrate old chamados once (moved here from buildBoard)
+    migrateChamadosToTasks();
+  } catch(e) {
+    console.error('[Plenno] onLogin error:', e);
+    toast('Erro ao carregar: ' + e.message, 'red');
+  }
 }
 
 // ── HEADER USER ────────────────────────────────────────
@@ -1728,15 +1735,20 @@ document.addEventListener('click', e => {
 
 // ── COLUMNS (Firestore) ────────────────────────────────
 async function loadColumns() {
-  const ref = db.collection('users').doc(currentUser.uid).collection('config').doc('columns');
-  const snap = await ref.get();
-  if (snap.exists) {
-    columns = snap.data().list || DEFAULT_COLUMNS;
-  } else {
+  try {
+    const ref = db.collection('users').doc(currentUser.uid).collection('config').doc('columns');
+    const snap = await ref.get();
+    if (snap.exists) {
+      columns = snap.data().list || DEFAULT_COLUMNS;
+    } else {
+      columns = [...DEFAULT_COLUMNS];
+      await ref.set({ list: columns });
+    }
+    columns.sort((a,b) => a.order - b.order);
+  } catch(e) {
+    console.error('[Plenno] loadColumns error:', e);
     columns = [...DEFAULT_COLUMNS];
-    await ref.set({ list: columns });
   }
-  columns.sort((a,b) => a.order - b.order);
 }
 
 async function saveColumns() {
@@ -1746,20 +1758,20 @@ async function saveColumns() {
 
 // ── TASKS (Firestore) ──────────────────────────────────
 async function loadTasks() {
-  // own tasks
-  const ownSnap = await db.collection('tasks')
-    .where('ownerId', '==', currentUser.uid).get();
-
-  // tasks shared with me
-  const sharedSnap = await db.collection('tasks')
-    .where('sharedWith', 'array-contains', currentUser.uid).get();
-
-  const map = {};
-  ownSnap.forEach(d => map[d.id] = { id: d.id, ...d.data() });
-  sharedSnap.forEach(d => { if (!map[d.id]) map[d.id] = { id: d.id, ...d.data() }; });
-
-  allTasks = Object.values(map);
-  buildAreaFilter();
+  try {
+    const ownSnap = await db.collection('tasks')
+      .where('ownerId', '==', currentUser.uid).get();
+    const sharedSnap = await db.collection('tasks')
+      .where('sharedWith', 'array-contains', currentUser.uid).get();
+    const map = {};
+    ownSnap.forEach(d => map[d.id] = { id: d.id, ...d.data() });
+    sharedSnap.forEach(d => { if (!map[d.id]) map[d.id] = { id: d.id, ...d.data() }; });
+    allTasks = Object.values(map);
+    buildAreaFilter();
+  } catch(e) {
+    console.error('[Plenno] loadTasks error:', e);
+    allTasks = [];
+  }
 }
 
 
@@ -1854,6 +1866,8 @@ function getFilteredTasks() {
 
 function buildBoard() {
   const wrap = document.getElementById('board-wrap');
+  if (!wrap) return;
+  if (!columns || !columns.length) { wrap.innerHTML = ''; return; }
   const tasks = getFilteredTasks();
   const today = new Date().toISOString().slice(0,10);
 
@@ -1927,7 +1941,6 @@ function buildBoard() {
   if (!window._listenerStarted) {
     window._listenerStarted = true;
     startTasksListener();
-  migrateChamadosToTasks(); // one-time migration from old chamados collection
   }
 }
 
